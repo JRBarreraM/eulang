@@ -1,14 +1,23 @@
 # CI4721_LenguajesII
 
-# Protolenguaje
+# Eulang
 
-_Acá va un párrafo que describa lo que es el proyecto_
+_Eulang es como agarrar python pero con c++, 1% de probabilidades, 99% de fe_
 
 ## Declaraciones
 ```
-tipo_de_dato nombre_variable;  
+let tipo_de_dato nombre_variable;  
 o  
-tipo_de_dato nombre_variable = valor;
+let tipo_de_dato nombre_variable = valor;
+```
+
+## Bloque
+Permite secuenciar un conjunto de instrucciones y declarar variables locales. Puede usarse en cualquier
+lugar donde se requiera una instruccion. Su sintaxis es:  
+```
+{
+	instrucciones
+}
 ```
 
 ## Tipos de datos
@@ -17,57 +26,75 @@ tipo_de_dato nombre_variable = valor;
 
 * char: representa un caracter ASCII de 8 bits.  
 	```
-	char mander;  
-	char mander = 'o';
+	let char mander;  
+	let char mander = 'o';
 	```
+
 * int: representa un número entero con signo de 32 bits.  
 	```
-	int eligente;  
-	int eligente = 42;
+	let int eligente;  
+	let int eligente = 42;
 	```
+
 * bool: representan un valor booleano, es decir, true o false.  
 	```
-	bool basor;  
-	bool basor = true;
+	let bool basor;  
+	let bool basor = true;
 	```
+
 * float: representa un número decimal de 32 bits.  
 	```
-	flot ante;  
-    float ante = 3.1416;
+	let flot ante;  
+    let float ante = 3.1416;
 	```
 
 ### Compuestos
 
 * type[N]: representa un arreglo de tamaño N, con n siendo un entero positivo, del tipo Type.  
 	```
-	int[n] intArray1;  
-	int[1] intArray;
-	int[] intArray3 = [1,2,3];  
-	int[] intArray4;
+	let int[n] intArray1;  
+	let int[1] intArray;
+	let int[] intArray3 = [1,2,3];  
+	let int[] intArray4;
 	```
+
 * str: representa una cadena de caracteres.  
 	```
-	str string1 = "Hello";
-	str string1;
+	let str string1 = "Hello";
+	let str string1;
 	```
+
 * struct: representa un conjunto de datos agrupados bajo un mismo nombre.   
 	```
  	struct ura {
-		int numero;
-		str texto;
+		let int numero;
+		let str texto;
 	}
+
+	let ura structura1;
+	structura1.numero = 10;
+	structura1.texto = "diez";
+
+	let ura structura2 = {10, "diez"};
 	```
+
 * union: representa un tipo de dato especial que contiene una serie de datos que comparten un espacio de memoria, pero solo se puede almacenar uno de estos valores. 
 	```
 	union europea { 
-		int numero;
-		str texto;
+		let int numero;
+		let str texto;
 	}
+
+	let europea unioneuropea1;
+	unioneuropea1.numero = 10;
+	unioneuropea1.texto = "diez";
+	let europea unioneuropea = { numero -> 10 };
 	```
+
 * type ~: representa una direccion de memoria del heap.
 	```
-	int ~ var;
-	int ~ var = &variable;
+	let int ~ var;
+	let int ~ var = &variable;
 	```
 
 ## Selección
@@ -170,8 +197,128 @@ print(adios); //1
 ## Arreglos dinamicos:
 list: representa un arreglo de tamaño variable, de datos de un tipo primitivo homogeneo.
 ```
-list myLista;
-list myLista = [a,b,c,d];
+let list[type] myLista;
+let list[type] myLista = [a,b,c,d];
 ```
 
 ## Operaciones sobre tipos de datos:
+
+* char:
+	```
+	str || char + str || char -> str
+	ascii('a') -> 97
+	ascii(97) -> 'a'
+	char == char;
+	char != char;
+	char > char;
+	char < char;
+	char >= char;
+	char <= char;
+	```
+
+* int: 
+	```
+	int + int -> int;
+	int - int -> int;
+	int * int -> int;
+	int / int -> int;
+	int ** int -> int;
+	int % int -> int;
+	int > int -> bool;
+	int < int -> bool;
+	int >= int -> bool;
+	int <= int -> bool;
+	int != int -> bool;
+	int == int -> bool;
+	int.toString() -> string;
+	```
+
+* bool: 
+	```
+	bool || bool = bool;
+	bool && bool = bool;
+	!bool = bool;
+	bool.toString() -> string;
+	```
+
+* float: 
+	```
+	float || int +  float || int = float;
+	float || int -  float || int = float;
+	float || int *  float || int = float;
+	float || int /  float || int = float;
+	float || int ** float || int = float;
+	float || int %  float || int = float;
+	round(float)   -> int;
+	ceil(float)    -> int;
+	floor(float)   -> int;
+	decimal(float) -> float;
+	float > float  -> bool;
+	float < float  -> bool;
+	float >= float -> bool;
+	float <= float -> bool;
+	float != float -> bool;
+	float == float -> bool;
+	float.toString() -> string;
+	```
+
+* type[N]:
+	```
+	let type[] array = [];
+	array[int] -> array_member_at_int;
+	array[int] = type_member;
+	array1[] + array2[] -> array3[];
+	array[].len -> int;
+	array[-1] == array[array.len];
+	array[0...1] == array[0];
+	array.toString() -> string;
+	```
+
+* str:  
+	```
+	str[int] -> char_at_int;
+	str + str -> str;
+	str.len -> int;
+	str[-1] == str[str.len];
+	str[0...1] == str[0];
+	str.split(str) -> str[];
+	str == str;
+	str != str;
+	```
+
+* list:  
+	```
+	let list[type] lista = [];
+	lista[int] -> lista_member_at_int;
+	lista + lista -> lista;
+	lista.len -> int;
+	lista[-1] == lista[lista.len];
+	lista[0...1] == lista[0];
+	lista.pop();
+	lista.pop(index);
+	lista.push(type_member);
+	lista.insert(index, type_member);
+	lista.find(element);
+	lista.reverse();
+	lista.remove(type_member);
+	lista.toString() -> string;
+	```
+
+* truthy y falsy:  
+	```
+	0 -> false
+	int != 0 -> true
+	[] -> false
+	[algo] -> true
+	```
+
+## I/O:
+* print();  
+	```
+	print(str); //like python
+	print(type + type);
+	```
+* input();  
+	```
+	input('mensajito: '); //like python
+	```
