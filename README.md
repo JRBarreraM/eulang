@@ -44,7 +44,7 @@ lugar donde se requiera una instruccion. Su sintaxis es:
 
 * float: representa un número decimal de 32 bits, cumple con IEEE 754-2019.  
 	```
-	let flot ante;  
+	let float ante;  
     let float ante = 3.1416;
 	```
 
