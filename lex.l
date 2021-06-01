@@ -80,6 +80,70 @@
         EOL
     };
 
+    string tokens [] =
+    {
+        "NUMBER",
+        "ID",
+        "SEMICOLON",
+        "COMMA",
+        "DOT",
+        "DTWODOTS",
+        "SOFORTH",
+        "ASSIGN",
+        "LET",
+        "INT",
+        "BOOL",
+        "FLOAT",
+        "CHAR",
+        "STR",
+        "STRUCT",
+        "UNION",
+        "LIST",
+        "TILDE",
+        "DEREF",
+        "ROOF",
+        "TRUE",
+        "FALSE",
+        "FUNC",
+        "PROC",
+        "IF",
+        "ELIF",
+        "ELSE",
+        "FOR",
+        "FOREACH",
+        "IN",
+        "WHILE",
+        "RETURN",
+        "PRINT",
+        "INPUT",
+        "OCURLYBRACKET",
+        "CCURLYBRACKET",
+        "OBRACKET",
+        "CBRACKET",
+        "OPAR",
+        "CPAR",
+        "QUOTE",
+        "DQUOTE",
+        "ADD",
+        "SUB",
+        "MUL",
+        "DIV",
+        "MOD",
+        "EXP",
+        "NOT",
+        "OR",
+        "AND",
+        "EQUALS",
+        "NEQUALS",
+        "GREATER",
+        "LESS",
+        "GEQ",
+        "LEQ",
+        "EOL"
+    };
+
+    regex extension("(.*)\\.eula");
+
     string yylval;
     int row = 1;
     int col = 1;
@@ -107,82 +171,83 @@ number  [0-9]+
 letter  [a-zA-Z]
 
 %%
-[ \t]                       { col++; /* ignore whitespace */ }
-\/\/.*\n                    { row++; col = 0; /* ignore comment */ }
-\/\\*((.|\n)*?)\\*\/        { row = row + countLines(yytext); /* ignore comment */ }
+[ \t]                        { col++; /* ignorar espacios en blanco */ }
+\/\/.*\n                     { row++; col = 0; /* ignorar comentarios */ }
+\/\\*((.|\n)*?)\\*\/         { row = row + countLines(yytext); /* ignorar comentarios */ }
 
-";"                         { return SEMICOLON; }
-","                         { return COMMA; }
-"."                         { return DOT; }
-"::"                        { return DTWODOTS; }
-"..."                       { return SOFORTH; }
+";"                          { return SEMICOLON; }
+","                          { return COMMA; }
+"."                          { return DOT; }
+"::"                         { return DTWODOTS; }
+"..."                        { return SOFORTH; }
 
-"="                         { return ASSIGN; }
+"="                          { return ASSIGN; }
 
-"let"                       { return LET; }
-"int"                       { return INT; }
-"bool"                      { return BOOL; }
-"float"                     { return FLOAT; }
-"str"                       { return STR; }
-"struct"                    { return STRUCT; }
-"union"                     { return UNION; }
-"list"                      { return LIST; }
-"~"                         { return TILDE; }
-"&"                         { return DEREF; }
-"^"                         { return ROOF; }
+"let"                        { return LET; }
+"int"                        { return INT; }
+"bool"                       { return BOOL; }
+"float"                      { return FLOAT; }
+"str"                        { return STR; }
+"struct"                     { return STRUCT; }
+"union"                      { return UNION; }
+"list"                       { return LIST; }
+"~"                          { return TILDE; }
+"&"                          { return DEREF; }
+"^"                          { return ROOF; }
 
-"true"                      { return TRUE; }
-"false"                     { return FALSE; }
+"true"                       { return TRUE; }
+"false"                      { return FALSE; }
 
-"func"                      { return FUNC; }
-"proc"                      { return PROC; }
-"if"                        { return IF; }
-"elif"                      { return ELIF; }
-"else"                      { return ELSE; }
-"for"                       { return FOR; }
-"foreach"                   { return FOREACH; }
-"in"                        { return IN; }
-"while"                     { return WHILE; }
-"return"                    { return RETURN; }
-"print"                     { return PRINT; }
-"input"                     { return INPUT; }
+"func"                       { return FUNC; }
+"proc"                       { return PROC; }
+"if"                         { return IF; }
+"elif"                       { return ELIF; }
+"else"                       { return ELSE; }
+"for"                        { return FOR; }
+"foreach"                    { return FOREACH; }
+"in"                         { return IN; }
+"while"                      { return WHILE; }
+"return"                     { return RETURN; }
+"print"                      { return PRINT; }
+"input"                      { return INPUT; }
 
-"{"                         { return OCURLYBRACKET; }
-"}"                         { return CCURLYBRACKET; }
-"["                         { return OBRACKET; }
-"]"                         { return CBRACKET; }
-"("                         { return OPAR; }
-")"                         { return CPAR; }
+"{"                          { return OCURLYBRACKET; }
+"}"                          { return CCURLYBRACKET; }
+"["                          { return OBRACKET; }
+"]"                          { return CBRACKET; }
+"("                          { return OPAR; }
+")"                          { return CPAR; }
 
-\'.\'                       { yylval = strdup(yytext); return QUOTE; }
-\"(?:[^"\\\n]|\\.)*\"       { yylval = strdup(yytext); return DQUOTE; }
+\'.\'                        { yylval = strdup(yytext); return QUOTE; }
+\"(?:[^"\\\n]|\\.)*\"        { yylval = strdup(yytext); return DQUOTE; }
 
-"+"                         { return ADD; }
-"-"                         { return SUB; }
-"*"                         { return MUL; }
-"/"                         { return DIV; }
-"%"                         { return MOD; }
-"**"                        { return EXP; }
+"+"                          { return ADD; }
+"-"                          { return SUB; }
+"*"                          { return MUL; }
+"/"                          { return DIV; }
+"%"                          { return MOD; }
+"**"                         { return EXP; }
 
-"!"                         { return NOT; }
-"||"                        { return OR; }
-"&&"                        { return AND; }
+"!"                          { return NOT; }
+"||"                         { return OR; }
+"&&"                         { return AND; }
 
-"=="                        { return EQUALS; }
-"!="                        { return NEQUALS; }
-">"                         { return GREATER; }
-"<"                         { return LESS; }
-">="                        { return GEQ; }
-"<="                        { return LEQ; }
+"=="                         { return EQUALS; }
+"!="                         { return NEQUALS; }
+">"                          { return GREATER; }
+"<"                          { return LESS; }
+">="                         { return GEQ; }
+"<="                         { return LEQ; }
 
-{number}                    { yylval = strdup(yytext); return NUMBER; }
+{number}                     { yylval = strdup(yytext); return NUMBER; }
 {letter}({letter}|{number})* { yylval = strdup(yytext); return ID; }
 
-\n                          { row++; col = 0; return EOL; }
-.                           { temp = strdup(yytext); errors.push("Error: Unexpected character " + temp + " at line " + to_string(row) + ", column " + to_string(col) + "\n"); }
+\n                           { row++; col = 0; return EOL; }
+.                            { temp = strdup(yytext); 
+                                errors.push("Error: Unexpected character " + temp + " at line " + to_string(row) + ", column " + to_string(col) + "\n"); }
 %%
 
-void showq(queue<string> gq)
+void show_queue(queue<string> gq)
 {
     queue<string> g = gq;
     while (!g.empty()) {
@@ -195,30 +260,40 @@ int main(int argc, char **argv)
 {
     if(argc < 2) 
     {
-        printf("No file given");
+        cout << "No file given" << endl;
         return -1;
     }
 
-    FILE *myfile = fopen(argv[1], "r");
-    if (!myfile) {
-        printf("I can't open the file!");
+    if(!regex_match(argv[1], extension))
+    {
+        cout << "File extension doesn't match." << endl;
         return -1;
     }
-    yyin = myfile;
+
+    FILE *m_file = fopen(argv[1], "r");
+    
+    if (!m_file) 
+    {
+        cout << "Can't open the file!" << endl;
+        return -1;
+    }
+    yyin = m_file;
 
     int tok;
 
-    while(tok = yylex()) {
+    while(tok = yylex()) 
+    {
         if(tok == NUMBER || tok == ID || tok == QUOTE || tok == DQUOTE) 
-            detectedTokens.push(to_string(tok) + " = " + yylval + "\n");
+            detectedTokens.push(tokens[tok - 1] + " = " + yylval + "\n");
         else 
-            detectedTokens.push(to_string(tok) + "\n");
+            detectedTokens.push(tokens[tok - 1] + "\n");
         col += strlen(yytext);
-
     }
 
+    fclose(m_file);
+
     if(errors.empty())
-        showq(detectedTokens);
+        show_queue(detectedTokens);
     else
-        showq(errors);
+        show_queue(errors);
 }
