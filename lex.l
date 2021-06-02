@@ -1,4 +1,3 @@
-/* recognize tokens for the calculator and print them out */
 %option noyywrap
 
 %{
@@ -10,6 +9,7 @@
 
     enum yytokentype {
         NUMBER = 1,
+        DECIMAL,
         ID,
 
         SEMICOLON,
@@ -49,6 +49,9 @@
         PRINT,
         INPUT,
 
+        NEW,
+        VENGEANCE,
+
         OCURLYBRACKET,
         CCURLYBRACKET,
         OBRACKET,
@@ -83,6 +86,7 @@
     string tokens [] =
     {
         "NUMBER",
+        "DECIMAL",
         "ID",
         "SEMICOLON",
         "COMMA",
@@ -116,6 +120,8 @@
         "RETURN",
         "PRINT",
         "INPUT",
+        "NEW",
+        "VENGEANCE",
         "OCURLYBRACKET",
         "CCURLYBRACKET",
         "OBRACKET",
@@ -171,9 +177,9 @@ number  [0-9]+
 letter  [a-zA-Z]
 
 %%
+(\/\/)(.*?)([\n\r])          { row++; col = 0; /* ignorar comentarios */ }
+\/\*[\s\S]*?\*\/             { row = row + countLines(yytext); /* ignorar comentarios */ }
 [ \t]                        { col++; /* ignorar espacios en blanco */ }
-\/\/.*\n                     { row++; col = 0; /* ignorar comentarios */ }
-\/\\*((.|\n)*?)\\*\/         { row = row + countLines(yytext); /* ignorar comentarios */ }
 
 ";"                          { return SEMICOLON; }
 ","                          { return COMMA; }
@@ -184,6 +190,7 @@ letter  [a-zA-Z]
 "="                          { return ASSIGN; }
 
 "let"                        { return LET; }
+"char"                       { return CHAR; }
 "int"                        { return INT; }
 "bool"                       { return BOOL; }
 "float"                      { return FLOAT; }
@@ -210,6 +217,9 @@ letter  [a-zA-Z]
 "return"                     { return RETURN; }
 "print"                      { return PRINT; }
 "input"                      { return INPUT; }
+
+"new"                        { return NEW; }
+"vengeance"                  { return VENGEANCE; }
 
 "{"                          { return OCURLYBRACKET; }
 "}"                          { return CCURLYBRACKET; }
@@ -240,7 +250,8 @@ letter  [a-zA-Z]
 "<="                         { return LEQ; }
 
 {number}                     { yylval = strdup(yytext); return NUMBER; }
-{letter}({letter}|{number})* { yylval = strdup(yytext); return ID; }
+{number}\.{number}           { yylval = strdup(yytext); return DECIMAL; } 
+{letter}({letter}|_|\-|{number})* { yylval = strdup(yytext); return ID; }
 
 \n                           { row++; col = 0; return EOL; }
 .                            { temp = strdup(yytext); 
@@ -283,7 +294,7 @@ int main(int argc, char **argv)
 
     while(tok = yylex()) 
     {
-        if(tok == NUMBER || tok == ID || tok == QUOTE || tok == DQUOTE) 
+        if(tok == NUMBER || tok == DECIMAL || tok == ID || tok == QUOTE || tok == DQUOTE) 
             detectedTokens.push(tokens[tok - 1] + " = " + yylval + "\n");
         else 
             detectedTokens.push(tokens[tok - 1] + "\n");

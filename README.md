@@ -399,3 +399,11 @@ Operadores binarios que retornan un bool.
 	```
 	let type var = input('mensajito: ')::type;
 	```
+
+## Como correr el lexer
+
+```
+flex nombreArchivoLexer.l
+g++ nombreArchivoLexer.yy.c
+./nombreEjecutable nombreArchivoCodigo.eula      *NOTA: Es importante la extension*
+```
