@@ -79,7 +79,7 @@ lugar donde se requiera una instruccion. Su sintaxis es:
 
 * union: representa un tipo de dato especial que contiene una serie de datos que comparten un espacio de memoria, pero solo se puede almacenar uno de estos valores. La estructura internamente guarda el ultimo valor asignado como "activo".
 	```
-	union europea { 
+	union europea {
 		let int numero;
 		let str texto;
 	}
@@ -96,6 +96,7 @@ lugar donde se requiera una instruccion. Su sintaxis es:
 * type ~: representa una direccion de memoria del heap. Solo se puede desreferenciar con el operador &.
 	```
 	let type ~ var = new type;
+	&var = 5;
 	let type variable = &var;
 	vengeance var; //libera el espacio de memoria
 	```
@@ -198,7 +199,7 @@ Para pasar por referencia se usa int ^ hola. Ejemplo:
 ```
 int hola = 1;
 int adios = 1;
-function dummy(int ^ a, int b)::int{
+func dummy(int ^ a, int b)::int{
 	a++;
 	b++;
 	return a+b;

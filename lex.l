@@ -21,14 +21,14 @@
         ASSIGN,
 
         LET,
-        INT,
-        BOOL,
-        FLOAT,
-        CHAR,
-        STR,
-        STRUCT,
-        UNION,
-        LIST,
+        TINT,
+        TBOOL,
+        TFLOAT,
+        TCHAR,
+        TSTR,
+        TSTRUCT,
+        TUNION,
+        TLIST,
         TILDE,
         DEREF,
         ROOF,
@@ -59,15 +59,17 @@
         OPAR,
         CPAR,
 
-        QUOTE,
-        DQUOTE,
+        CHAR,
+        STRING,
 
         ADD,
         SUB,
         MUL,
         DIV,
         MOD,
-        EXP,
+        POW,
+        PLUSPLUS,
+        MINUSMINUS,
 
         NOT,
         OR,
@@ -95,14 +97,14 @@
         "SOFORTH",
         "ASSIGN",
         "LET",
-        "INT",
-        "BOOL",
-        "FLOAT",
-        "CHAR",
-        "STR",
-        "STRUCT",
-        "UNION",
-        "LIST",
+        "TINT",
+        "TBOOL",
+        "TFLOAT",
+        "TCHAR",
+        "TSTR",
+        "TSTRUCT",
+        "TUNION",
+        "TLIST",
         "TILDE",
         "DEREF",
         "ROOF",
@@ -128,14 +130,16 @@
         "CBRACKET",
         "OPAR",
         "CPAR",
-        "QUOTE",
-        "DQUOTE",
+        "CHAR",
+        "STRING",
         "ADD",
         "SUB",
         "MUL",
         "DIV",
         "MOD",
-        "EXP",
+        "POW",
+        "PLUSPLUS",
+        "MINUSMINUS",
         "NOT",
         "OR",
         "AND",
@@ -190,14 +194,14 @@ letter  [a-zA-Z]
 "="                          { return ASSIGN; }
 
 "let"                        { return LET; }
-"char"                       { return CHAR; }
-"int"                        { return INT; }
-"bool"                       { return BOOL; }
-"float"                      { return FLOAT; }
-"str"                        { return STR; }
-"struct"                     { return STRUCT; }
-"union"                      { return UNION; }
-"list"                       { return LIST; }
+"char"                       { return TCHAR; }
+"int"                        { return TINT; }
+"bool"                       { return TBOOL; }
+"float"                      { return TFLOAT; }
+"str"                        { return TSTR; }
+"struct"                     { return TSTRUCT; }
+"union"                      { return TUNION; }
+"list"                       { return TLIST; }
 "~"                          { return TILDE; }
 "&"                          { return DEREF; }
 "^"                          { return ROOF; }
@@ -228,15 +232,17 @@ letter  [a-zA-Z]
 "("                          { return OPAR; }
 ")"                          { return CPAR; }
 
-\'.\'                        { yylval = strdup(yytext); return QUOTE; }
-\"(?:[^"\\\n]|\\.)*\"        { yylval = strdup(yytext); return DQUOTE; }
+\'.\'                        { yylval = strdup(yytext); return CHAR; }
+\"(?:[^"\\\n]|\\.)*\"        { yylval = strdup(yytext); return STRING; }
 
 "+"                          { return ADD; }
 "-"                          { return SUB; }
 "*"                          { return MUL; }
 "/"                          { return DIV; }
 "%"                          { return MOD; }
-"**"                         { return EXP; }
+"**"                         { return POW; }
+"++"                         { return PLUSPLUS; }
+"--"                         { return MINUSMINUS; }
 
 "!"                          { return NOT; }
 "||"                         { return OR; }
@@ -294,7 +300,7 @@ int main(int argc, char **argv)
 
     while(tok = yylex()) 
     {
-        if(tok == NUMBER || tok == DECIMAL || tok == ID || tok == QUOTE || tok == DQUOTE) 
+        if(tok == NUMBER || tok == DECIMAL || tok == ID || tok == CHAR || tok == STRING) 
             detectedTokens.push(tokens[tok - 1] + " = " + yylval + "\n");
         else 
             detectedTokens.push(tokens[tok - 1] + "\n");
