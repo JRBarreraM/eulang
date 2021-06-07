@@ -1,0 +1,16 @@
+proc count_and_print(int counter) 
+{
+    count++;
+    print(count.toString());    
+}
+
+let int counter = 1;
+
+for(int i = counter$; i < 25; i++)
+{
+    count_and_print(i);?
+}
+
+let str final = "El numero final es ";
+
+print(final + counter);
