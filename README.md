@@ -54,7 +54,7 @@ lugar donde se requiera una instruccion. Su sintaxis es:
 	```
 	let int[n] intArray1;  
 	let int[1] intArray;
-	let int[] intArray3 = [1,2,3];
+	let int[3] intArray3 = [1,2,3];
 	```
 
 * str: representa una cadena de caracteres.  
@@ -115,13 +115,17 @@ if( condicional ) {
 ## Repetición
 * Definida: disponible para array, str, list. Se crea una copia de la estructura a iterar, y se itera sobre la misma. Lo cual permite que se puedan hacer modificaciones sobre la estructura original.
 	```
-	let int[] a = [1,2,3];
-	foreach elem in a {
+	let int[3] a = [1,2,3];
+	for elem in a {
+		//do something a.len times
+	}
+
+	for elem in [1...3] {
 		//do something a.len times
 	}
 
 	let list b = [1,2,3,4,5];
-	foreach elem in b {
+	for elem in b {
 		if (elem % 2 != 0){
 			b.append(elem)
 		}
@@ -130,10 +134,6 @@ if( condicional ) {
 	```
 * Indefinida:  
 	```
-	for (int i = 0; i < n; i++) {
-		//do something n times
-	}
-
 	while( condicional ) {
 		//do something until not condicional
 	}
@@ -334,7 +334,7 @@ Operadores binarios que retornan un bool.
 
 	array[0...1] == array[0]; //retorna un el conjunto de elementos del elementos indexados en el rango especificado. El rango es inclusivo del lado izquierdo pero no del lado derecho.  
 
-	let int[] array= [10,11];
+	let int[2] array= [10,11];
 	array.toString() -> [ '[' , '1' , '0' , ',' , '1' , '1' , ']' ]; //"["+ 10.tostring() + "," + 11.tostring() + "]"
 	```
 
@@ -382,7 +382,9 @@ Operadores binarios que retornan un bool.
 	lista.insert(index, type_member); //agrega el elemento especificado en el indice indicado,  
 
 	lista.find(element);  //busca un elemento en la lista y si se encuentra retorna el indice. Si no error.
+
 	lista.reverse();  //invierte la lista
+
 	lista.remove(type_member); //elimina todas las ocurrencias de un elemento de la lista.  
 
 	lista.toString() -> string; //analogo al array

@@ -5,8 +5,9 @@
     #include <queue>
     #include <iostream>
     #include <regex>
+    #include "parser.tab.h"
     using namespace std;
-
+/*
     enum yytokentype {
         NUMBER = 1,
         DECIMAL,
@@ -148,12 +149,10 @@
         "GEQ",
         "LEQ"
     };
-
+*/
     regex extension("(.*)\\.eula");
 
-    string yylval;
-    int row = 1;
-    int col = 1;
+    int yycolumn = 1;
     string temp;
 
     queue<string> detectedTokens;
@@ -178,9 +177,9 @@ number  [0-9]+
 letter  [a-zA-Z]
 
 %%
-(\/\/)(.*?)([\n\r])          { row++; col = 0; /* ignorar comentarios */ }
-\/\*[\s\S]*?\*\/             { row = row + countLines(yytext); /* ignorar comentarios */ }
-[ \t]                        { col++; /* ignorar espacios en blanco */ }
+(\/\/)(.*?)([\n\r])          { yylineno++; yycolumn = 0; /* ignorar comentarios */ }
+\/\*[^(\$\})]*\*\/           { yylineno = yylineno + countLines(yytext); /* ignorar comentarios */ }
+[ \t]                        { yycolumn++; /* ignorar espacios en blanco */ }
 
 ";"                          { return SEMICOLON; }
 ","                          { return COMMA; }
@@ -212,7 +211,6 @@ letter  [a-zA-Z]
 "elif"                       { return ELIF; }
 "else"                       { return ELSE; }
 "for"                        { return FOR; }
-"foreach"                    { return FOREACH; }
 "in"                         { return IN; }
 "while"                      { return WHILE; }
 "return"                     { return RETURN; }
@@ -229,8 +227,8 @@ letter  [a-zA-Z]
 "("                          { return OPAR; }
 ")"                          { return CPAR; }
 
-\'.\'                        { yylval = strdup(yytext); return CHAR; }
-\"(?:[^"\\\n]|\\.)*\"        { yylval = strdup(yytext); return STRING; }
+\'.\'                        { yylval.ch = yytext[1]; return CHAR; }
+\"(?:[^"\\\n]|\\.)*\"        { yylval.str = strdup(yytext); return STRING; }
 
 "+"                          { return ADD; }
 "-"                          { return SUB; }
@@ -252,15 +250,15 @@ letter  [a-zA-Z]
 ">="                         { return GEQ; }
 "<="                         { return LEQ; }
 
-{number}                     { yylval = strdup(yytext); return NUMBER; }
-{number}\.{number}           { yylval = strdup(yytext); return DECIMAL; } 
-{letter}({letter}|_|\-|{number})* { yylval = strdup(yytext); return ID; }
+{number}                     { yylval.integer = atoi(yytext); return NUMBER; }
+{number}\.{number}           { yylval.flot = stof(yytext); return DECIMAL; } 
+{letter}({letter}|_|\-|{number})* { yylval.str = strdup(yytext); return ID; }
 
-\n                           { row++; col = 0; /* ignorar */ }
+\n                           { yylineno++; yycolumn = 0; /* ignorar */ }
 .                            { temp = strdup(yytext); 
-                                errors.push("Error: Unexpected character " + temp + " at line " + to_string(row) + ", column " + to_string(col) + "\n"); }
+                                errors.push("Error: Unexpected character " + temp + " at line " + to_string(yylineno) + ", column " + to_string(yycolumn) + "\n"); }
 %%
-
+/*
 void show_queue(queue<string> gq)
 {
     queue<string> g = gq;
@@ -269,7 +267,6 @@ void show_queue(queue<string> gq)
         g.pop();
     }
 }
-
 int main(int argc, char **argv)
 {
     if(argc < 2) 
@@ -301,7 +298,7 @@ int main(int argc, char **argv)
             detectedTokens.push(tokens[tok - 1] + " = " + yylval + "\n");
         else 
             detectedTokens.push(tokens[tok - 1] + "\n");
-        col += strlen(yytext);
+        yycolumn += strlen(yytext);
     }
 
     fclose(m_file);
@@ -311,3 +308,4 @@ int main(int argc, char **argv)
     else
         show_queue(errors);
 }
+*/
