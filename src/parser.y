@@ -220,6 +220,7 @@ Exp:            NUMBER               { ; }
                 | Exp LEQ Exp        { ; }
                 | NOT Exp            { ; }
                 | Exp OBRACKET Exp SOFORTH Exp CBRACKET  { ; }
+                | LValue DOT ID OPAR OptExp CPAR            { ; }
 ;
 
 /* Left Values */
