@@ -1,8 +1,10 @@
 %{
     #include <string>
     #include <queue>
+    #include <vector>
     #include <iostream>
     #include <regex>
+    #include "token.h"
     using namespace std;
 
     extern int yylex(void);
@@ -12,9 +14,8 @@
 
     // queues for tokens and errors
     extern queue<string> errors;
-    extern queue<string> detectedTokens;
+    vector<Token*> detectedTokens;
     
-    void show_queue(queue<string> gq);
     void yyerror(const char *s);
     
     regex extension("(.*)\\.eula");
@@ -219,7 +220,6 @@ Exp:            NUMBER               { ; }
                 | Exp LEQ Exp        { ; }
                 | NOT Exp            { ; }
                 | Exp OBRACKET Exp SOFORTH Exp CBRACKET  { ; }
-                | Exp DOT ID CPAR OptExp OPAR            { ; }
 ;
 
 /* Left Values */
@@ -319,15 +319,6 @@ While:          WHILE OPAR Exp CPAR OCURLYBRACKET Inst CCURLYBRACKET    { ; }
 ;
 %%
 
-void show_queue(queue<string> gq)
-{
-    queue<string> g = gq;
-    while (!g.empty()) {
-        cout << g.front();
-        g.pop();
-    }
-}
-
 void yyerror(const char *s)
 {
   fprintf(stderr, "Error: %s at line %d, column %d\n", s, yylineno, yycolumn);
@@ -361,7 +352,33 @@ int main(int argc, char **argv)
 
     // apply lexing
     int tok;
-    while(tok = yylex()){cout << tok << endl;};
+    while(tok = yylex())
+    {
+        switch(tok)
+        {
+            case ID:
+                detectedTokens.push_back(new TIdentifier(yylval.str, tok, yylineno, yylloc.first_column));
+                break;
+            case NUMBER:
+                detectedTokens.push_back(new TInteger(yylval.integer, tok, yylineno, yylloc.first_column));
+                break;
+            case DECIMAL:
+                detectedTokens.push_back(new TFloat(yylval.flot, tok, yylineno, yylloc.first_column));
+                break;
+            case STRING:
+                detectedTokens.push_back(new TIdentifier(yylval.str, tok, yylineno, yylloc.first_column));
+                break;
+            case CHAR:
+                detectedTokens.push_back(new TChar(yylval.ch, tok, yylineno, yylloc.first_column));
+                break;
+            default:
+                detectedTokens.push_back(new Token(tok, yylineno, yylloc.first_column));
+                break;
+        }
+    };
+
+    // Print tokens
+    print_tokens(detectedTokens);
 
     fclose(yyin);
     yyin = fopen(argv[1], "r");

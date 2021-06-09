@@ -4,8 +4,6 @@
 %{
     #include <string>
     #include <queue>
-    #include <iostream>
-    #include <regex>
     #include "parser.tab.h"
     using namespace std;
 
@@ -18,7 +16,6 @@
 
     string temp;
 
-    queue<string> detectedTokens;
     queue<string> errors;
 
     int countLines(char* text)
