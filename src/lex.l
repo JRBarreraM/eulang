@@ -1,4 +1,5 @@
 %option noyywrap
+%option yylineno
 
 %{
     #include <string>
@@ -7,152 +8,14 @@
     #include <regex>
     #include "parser.tab.h"
     using namespace std;
-/*
-    enum yytokentype {
-        NUMBER = 1,
-        DECIMAL,
-        ID,
-
-        SEMICOLON,
-        COMMA,
-        DOT,
-        DTWODOTS,
-        SOFORTH,
-
-        ASSIGN,
-
-        LET,
-        TINT,
-        TBOOL,
-        TFLOAT,
-        TCHAR,
-        TSTR,
-        TSTRUCT,
-        TUNION,
-        TLIST,
-        TILDE,
-        DEREF,
-        ROOF,
-
-        TRUE,
-        FALSE,
-        
-        FUNC,
-        PROC,
-        IF,
-        ELIF,
-        ELSE,
-        FOR,
-        FOREACH,
-        IN,
-        WHILE,
-        RETURN,
-        PRINT,
-        INPUT,
-
-        NEW,
-        VENGEANCE,
-
-        OCURLYBRACKET,
-        CCURLYBRACKET,
-        OBRACKET,
-        CBRACKET,
-        OPAR,
-        CPAR,
-
-        CHAR,
-        STRING,
-
-        ADD,
-        SUB,
-        MUL,
-        DIV,
-        MOD,
-        POW,
-        PLUSPLUS,
-        MINUSMINUS,
-
-        NOT,
-        OR,
-        AND,
-
-        EQUALS,
-        NEQUALS,
-        GREATER,
-        LESS,
-        GEQ,
-        LEQ
-    };
-
-    string tokens [] =
-    {
-        "NUMBER",
-        "DECIMAL",
-        "ID",
-        "SEMICOLON",
-        "COMMA",
-        "DOT",
-        "DTWODOTS",
-        "SOFORTH",
-        "ASSIGN",
-        "LET",
-        "TINT",
-        "TBOOL",
-        "TFLOAT",
-        "TCHAR",
-        "TSTR",
-        "TSTRUCT",
-        "TUNION",
-        "TLIST",
-        "TILDE",
-        "DEREF",
-        "ROOF",
-        "TRUE",
-        "FALSE",
-        "FUNC",
-        "PROC",
-        "IF",
-        "ELIF",
-        "ELSE",
-        "FOR",
-        "FOREACH",
-        "IN",
-        "WHILE",
-        "RETURN",
-        "PRINT",
-        "INPUT",
-        "NEW",
-        "VENGEANCE",
-        "OCURLYBRACKET",
-        "CCURLYBRACKET",
-        "OBRACKET",
-        "CBRACKET",
-        "OPAR",
-        "CPAR",
-        "CHAR",
-        "STRING",
-        "ADD",
-        "SUB",
-        "MUL",
-        "DIV",
-        "MOD",
-        "POW",
-        "PLUSPLUS",
-        "MINUSMINUS",
-        "NOT",
-        "OR",
-        "AND",
-        "EQUALS",
-        "NEQUALS",
-        "GREATER",
-        "LESS",
-        "GEQ",
-        "LEQ"
-    };
-*/
-    regex extension("(.*)\\.eula");
 
     int yycolumn = 1;
+    #define YY_USER_ACTION \
+        yylloc.first_line = yylloc.last_line = yylineno; \
+        yylloc.first_column = yycolumn; yylloc.last_column = yycolumn + yyleng - 1; \
+        yycolumn += yyleng; \
+        yylval.str = strdup(yytext);
+
     string temp;
 
     queue<string> detectedTokens;
@@ -177,9 +40,9 @@ number  [0-9]+
 letter  [a-zA-Z]
 
 %%
-(\/\/)(.*?)([\n\r])          { yylineno++; yycolumn = 0; /* ignorar comentarios */ }
-\/\*[^(\$\})]*\*\/           { yylineno = yylineno + countLines(yytext); /* ignorar comentarios */ }
-[ \t]                        { yycolumn++; /* ignorar espacios en blanco */ }
+(\/\/)(.*?)([\n\r])          { yycolumn = 1; /* ignorar comentarios */ }
+\/\*[^(\$\})]*\*\/           { /* ignorar comentarios */ }
+[ \t]                        { /* ignorar espacios en blanco */ }
 
 ";"                          { return SEMICOLON; }
 ","                          { return COMMA; }
@@ -228,7 +91,7 @@ letter  [a-zA-Z]
 ")"                          { return CPAR; }
 
 \'.\'                        { yylval.ch = yytext[1]; return CHAR; }
-\"(?:[^"\\\n]|\\.)*\"        { yylval.str = strdup(yytext); return STRING; }
+\"(?:[^"\\\n]|\\.)*\"        { return STRING; }
 
 "+"                          { return ADD; }
 "-"                          { return SUB; }
@@ -252,60 +115,9 @@ letter  [a-zA-Z]
 
 {number}                     { yylval.integer = atoi(yytext); return NUMBER; }
 {number}\.{number}           { yylval.flot = stof(yytext); return DECIMAL; } 
-{letter}({letter}|_|\-|{number})* { yylval.str = strdup(yytext); return ID; }
+{letter}({letter}|_|\-|{number})* { return ID; }
 
-\n                           { yylineno++; yycolumn = 0; /* ignorar */ }
+\n                           { yycolumn = 1; /* ignorar */ }
 .                            { temp = strdup(yytext); 
                                 errors.push("Error: Unexpected character " + temp + " at line " + to_string(yylineno) + ", column " + to_string(yycolumn) + "\n"); }
 %%
-/*
-void show_queue(queue<string> gq)
-{
-    queue<string> g = gq;
-    while (!g.empty()) {
-        cout << g.front();
-        g.pop();
-    }
-}
-int main(int argc, char **argv)
-{
-    if(argc < 2) 
-    {
-        cout << "No file given" << endl;
-        return -1;
-    }
-
-    if(!regex_match(argv[1], extension))
-    {
-        cout << "File extension doesn't match." << endl;
-        return -1;
-    }
-
-    FILE *m_file = fopen(argv[1], "r");
-    
-    if (!m_file) 
-    {
-        cout << "Can't open the file!" << endl;
-        return -1;
-    }
-    yyin = m_file;
-
-    int tok;
-
-    while(tok = yylex()) 
-    {
-        if(tok == NUMBER || tok == DECIMAL || tok == ID || tok == CHAR || tok == STRING) 
-            detectedTokens.push(tokens[tok - 1] + " = " + yylval + "\n");
-        else 
-            detectedTokens.push(tokens[tok - 1] + "\n");
-        yycolumn += strlen(yytext);
-    }
-
-    fclose(m_file);
-
-    if(errors.empty())
-        show_queue(detectedTokens);
-    else
-        show_queue(errors);
-}
-*/

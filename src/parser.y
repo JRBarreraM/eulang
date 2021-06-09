@@ -2,6 +2,7 @@
     #include <string>
     #include <queue>
     #include <iostream>
+    #include <regex>
     using namespace std;
 
     extern int yylex(void);
@@ -14,8 +15,9 @@
     extern queue<string> detectedTokens;
     
     void show_queue(queue<string> gq);
-    void yyerror(char *s);
-
+    void yyerror(const char *s);
+    
+    regex extension("(.*)\\.eula");
 %}
 
 %union 
@@ -28,30 +30,81 @@
 }
 
 %define parse.lac full
+%define parse.error verbose
 
 %locations
 %start Start
 
 /* Declaraciones de BISON */
-%token SEMICOLON COMMA DOT DTWODOTS SOFORTH ASSIGN
-%token LET TINT TBOOL TFLOAT TCHAR TSTR TSTRUCT TUNION TLIST TILDE DEREF ROOF
-%token FUNC PROC
-%token IF ELIF ELSE
-%token FOR IN WHILE RETURN
-%token PRINT INPUT
-%token NEW VENGEANCE
-%token OCURLYBRACKET CCURLYBRACKET OBRACKET CBRACKET OPAR CPAR
-%token ADD SUB MUL DIV MOD POW
-%token PLUSPLUS MINUSMINUS
-%token NOT OR AND
-%token EQUALS NEQUALS GREATER LESS GEQ LEQ
+%token SEMICOLON 1
+%token COMMA 2
+%token DOT 3
+%token DTWODOTS 4
+%token SOFORTH 5
+%token ASSIGN 6
+/*  */
+%token LET 7
+%token TINT 8
+%token TBOOL 9
+%token TFLOAT 10
+%token TCHAR 11
+%token TSTR 12
+%token TSTRUCT 13
+%token TUNION 14
+%token TLIST 15
+%token TILDE 16
+%token DEREF 17
+%token ROOF 18
+/*  */
+%token FUNC 19
+%token PROC 20
+%token IF 21
+%token ELIF 22
+%token ELSE 23
+/*  */
+%token FOR 24
+%token IN 25
+%token WHILE 26
+%token RETURN 27
+/*  */
+%token PRINT 28
+%token INPUT 29
+/*  */
+%token NEW 30
+%token VENGEANCE 31
+/*  */
+%token OCURLYBRACKET 32
+%token CCURLYBRACKET 33
+%token OBRACKET 34
+%token CBRACKET 35
+%token OPAR 36
+%token CPAR 37
+/*  */
+%token ADD 38
+%token SUB 39
+%token MUL 40
+%token DIV 41
+%token MOD 42
+%token POW 43
+%token PLUSPLUS 44
+%token MINUSMINUS 45
+%token NOT 46
+%token OR 47
+%token AND 48
+%token EQUALS 49
+%token NEQUALS 50
+%token GREATER 51
+%token LESS 52
+%token GEQ 53
+%token LEQ 54
 
-%token <integer>  NUMBER
-%token <flot>     DECIMAL
-%token <id>       ID
-%token <chr>      CHAR
-%token <str>      STRING
-%token <boolean>  TRUE FALSE
+%token <integer>  NUMBER 55
+%token <flot>     DECIMAL 56
+%token <id>       ID 57
+%token <chr>      CHAR 58
+%token <str>      STRING 59
+%token <boolean>  TRUE 60
+%token <boolean>  FALSE 61
 
 // Precedence
 
@@ -166,6 +219,7 @@ Exp:            NUMBER               { ; }
                 | Exp LEQ Exp        { ; }
                 | NOT Exp            { ; }
                 | Exp OBRACKET Exp SOFORTH Exp CBRACKET  { ; }
+                | Exp DOT ID CPAR OptExp OPAR            { ; }
 ;
 
 /* Left Values */
@@ -274,9 +328,9 @@ void show_queue(queue<string> gq)
     }
 }
 
-void yyerror(char *s)
+void yyerror(const char *s)
 {
-  fprintf(stderr, "error: %s (%d,%d)\n", s, yylineno, yycolumn);
+  fprintf(stderr, "Error: %s at line %d, column %d\n", s, yylineno, yycolumn);
 }
 
 int main(int argc, char **argv)
@@ -285,6 +339,12 @@ int main(int argc, char **argv)
     if(argc != 2) 
     {
         cout << "No input file" << endl;
+        return -1;
+    }
+
+    if(!regex_match(argv[1], extension))
+    {
+        cout << "File extension doesn't match." << endl;
         return -1;
     }
 
@@ -301,7 +361,7 @@ int main(int argc, char **argv)
 
     // apply lexing
     int tok;
-    while(tok = yylex()){};
+    while(tok = yylex()){cout << tok << endl;};
 
     fclose(yyin);
     yyin = fopen(argv[1], "r");
@@ -310,7 +370,7 @@ int main(int argc, char **argv)
     if (errors.empty()) {
         
         // reset lines and columns
-        yylineno = 1; 
+        yylineno = 1;
         yycolumn = 1;
 
         // start parsing
