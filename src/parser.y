@@ -219,7 +219,7 @@ Exp:            NUMBER               { ; }
                 | Exp LEQ Exp        { ; }
                 | NOT Exp            { ; }
                 | Exp OBRACKET Exp SOFORTH Exp CBRACKET  { ; }
-                | Exp DOT ID CPAR OptExp OPAR            { ; }
+                | LValue DOT ID OPAR OptExp CPAR            { ; }
 ;
 
 /* Left Values */

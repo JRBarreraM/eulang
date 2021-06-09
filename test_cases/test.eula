@@ -16,4 +16,4 @@ for i in [counter...24]       //(int i = counter; i < 25; i++)
 let str final = "El numero final es ";
 
 // Chequeamos cual es el valor final
-print(final + counter);
+print(a.toInt() + counter);
