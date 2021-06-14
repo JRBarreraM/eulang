@@ -2,7 +2,7 @@
 #define TOKEN_H
 
 #include <string>
-#include "utilities.h"
+#include "utilities.hpp"
 #include <iostream>
 using namespace std;
 

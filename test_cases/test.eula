@@ -1,4 +1,4 @@
-proc count_and_print(int counter) 
+proc count_and_print(int counter, str hola) 
 {
     count++;
     print(count.toString);  
@@ -6,7 +6,7 @@ proc count_and_print(int counter)
 /* 
 
 */
-let int counter = 1;
+let int counter = [1,2,3][0];
 
 for i in [counter...24]       //(int i = counter; i < 25; i++)
 {
@@ -16,4 +16,4 @@ for i in [counter...24]       //(int i = counter; i < 25; i++)
 let str final = "El numero final es ";
 
 // Chequeamos cual es el valor final
-print(a.toInt() + counter);
+print(toInt(a) + counter);

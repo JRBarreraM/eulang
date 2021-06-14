@@ -4,7 +4,7 @@
     #include <vector>
     #include <iostream>
     #include <regex>
-    #include "token.h"
+    #include "token.hpp"
     using namespace std;
 
     extern int yylex(void);
@@ -147,6 +147,12 @@ Action:         VarInst SEMICOLON               { ; }
                 | ID PLUSPLUS SEMICOLON         { ; }
                 | ID MINUSMINUS SEMICOLON       { ; }
 ;
+FuncActions:    FuncActions Action { ; }
+                | Action           { ; }
+;
+FuncInst:       FuncActions        { ; }
+	            | /* lambda */     { ; }
+;
 Definition:     DefUnion          { ; }
                 | DefStruct       { ; }
                 | DefProc         { ; }
@@ -171,8 +177,7 @@ TypePrimitive:  TBOOL                              { ; }
                 
 TypeComposite:  TSTR                               { ; }
                 | TLIST                            { ; }
-                | TSTRUCT                          { ; }
-                | TUNION                           { ; }
+                | ID                               { ; }
 ;
 
 /* Definiciones */
@@ -188,12 +193,14 @@ Assign:         LValue ASSIGN RValue      { ; }
 ;
 RValue:         Exp                                             { ; }
                 | Array                                         { ; }
-                | NEW Type                                   { ; }
-                | INPUT OPAR OptExp CPAR DTWODOTS TypePrimitive { ; }
+                | NEW Type                                      { ; }
+                | INPUT OPAR OptExp CPAR DTWODOTS InputType     { ; }
 ;
-
-OptExp:         Exp             { ; }
-                | /* Lambda */  { ; }
+InputType:      TypePrimitive   { ; }
+                | TSTR          { ; }
+;
+OptExp:         Exp                  { ; }
+                | /* Lambda */       { ; }
 ;
 /* Expresiones */
 Exp:            NUMBER               { ; }
@@ -222,7 +229,6 @@ Exp:            NUMBER               { ; }
                 | Exp LEQ Exp        { ; }
                 | NOT Exp            { ; }
                 | Exp OBRACKET Exp SOFORTH Exp CBRACKET  { ; }
-                | LValue DOT ID OPAR OptExp CPAR         { ; }
 ;
 
 /* Left Values */
@@ -236,7 +242,7 @@ LValue:         ID                             { ; }
 DefFunc:        FUNC ID OPAR FuncPar CPAR DTWODOTS TypePrimitive OCURLYBRACKET FuncBody CCURLYBRACKET { ; }
 ;
 
-FuncBody:       Start RETURN Exp SEMICOLON     { ; }
+FuncBody:       FuncInst RETURN Exp SEMICOLON     { ; }
 ;
 
 FuncPar:        ParList                 { ; }
@@ -263,7 +269,7 @@ ArgList:    RValue                              { ; }
 ;
 
 /* Procedimientos */
-DefProc:        PROC ID OPAR FuncPar CPAR OCURLYBRACKET Inst CCURLYBRACKET { ; }
+DefProc:        PROC ID OPAR FuncPar CPAR OCURLYBRACKET FuncActions CCURLYBRACKET { ; }
 ;
 
 /* Arreglos */
@@ -293,8 +299,8 @@ UnionBody:      LET Type ID SEMICOLON           { ; }
 DefStruct:      TSTRUCT ID OCURLYBRACKET StructBody CCURLYBRACKET { ; }
 ;
 
-StructBody:     LET Type ID OptAssign SEMICOLON             { ; }
-		|       StructBody LET Type ID OptAssign SEMICOLON  { ; }
+StructBody:     VarDef SEMICOLON             { ; }
+		|       StructBody VarDef SEMICOLON  { ; }
 ;
 
 /* Condicionales */
@@ -310,7 +316,7 @@ OptElse:        ELSE OCURLYBRACKET Inst CCURLYBRACKET   { ; }
 ;
 
 /* For Loop */
-For:            FOR ID IN Range OCURLYBRACKET Inst CCURLYBRACKET    { ; }
+For:            FOR OPAR ID IN Range CPAR OCURLYBRACKET Inst CCURLYBRACKET    { ; }
 ;
 
 Range:          Exp         { ; }
@@ -329,14 +335,34 @@ void yyerror(const char *s)
 
 int main(int argc, char **argv)
 {
+    bool lex = false;
+    bool ast = false;
+    int flags = 0;
+    for(int i = 1; i < argc -1; ++i) {
+        if(string(argv[i]) == "-lex") {
+            lex = true;
+            flags++;
+        }
+
+        else if(string(argv[i]) == "-ast") {
+            ast = true;
+            flags++;
+        }
+
+        else{
+            cout << "Unexpected argument: " << argv[i] <<endl;
+            return 0;
+        }
+    }
+
     // Look for input line
-    if(argc != 2) 
+    if(argc < 2 + flags)
     {
         cout << "No input file" << endl;
         return -1;
     }
 
-    if(!regex_match(argv[1], extension))
+    if(!regex_match(argv[argc-1], extension))
     {
         cout << "File extension doesn't match." << endl;
         return -1;
@@ -344,7 +370,7 @@ int main(int argc, char **argv)
 
     // open file to extract the tokens
     extern FILE *yyin;
-    yyin = fopen(argv[1], "r");
+    yyin = fopen(argv[argc-1], "r");
 
     // check if file was succesfully opened.
     if (!yyin) 
@@ -381,12 +407,15 @@ int main(int argc, char **argv)
     };
 
     fclose(yyin);
-    yyin = fopen(argv[1], "r");
+    yyin = fopen(argv[argc-1], "r");
 
     // if there are no errors, apply parsing
     if (errors.empty()) {
         // Print tokens
-        //print_tokens(detectedTokens);
+        if (lex){
+            print_tokens(detectedTokens);
+            return 0;
+        }
         
         // reset lines and columns
         yylineno = 1;
@@ -394,6 +423,10 @@ int main(int argc, char **argv)
 
         // start parsing
         yyparse();
+
+        if(ast){
+            cout<<"ast here"<<endl;
+        }
 
     } else {
         show_queue(errors);

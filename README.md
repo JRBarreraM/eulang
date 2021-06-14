@@ -87,7 +87,6 @@ lugar donde se requiera una instruccion. Su sintaxis es:
 	let europea unioneuropea1;
 	unioneuropea1.texto = "diez";
 	unioneuropea1.numero = 10;
-	let ura structura2 = ura{10,"diez"};
 	print(unioneuropea1.texto); //Error texto is not active
 	let str hola = "hola" + unioneuropea1.numero; //Type error str + int
 	let str hola = "hola" + unioneuropea1.numero.toString(); //fino
@@ -300,13 +299,13 @@ Operadores binarios que retornan un bool.
 * char:
 	```
 	str || char + str || char -> str  //concatena creando un nuevo str.
-	ascii('a') -> 97 //convierte un char en su int ASCII asociado.  
-	ascii(97) -> 'a' //convierte un int en su char ASCII asociado.
+	ctoint('a') -> 97 //convierte un char en su int ASCII asociado.  
+	itochar(97) -> 'a' //convierte un int en su char ASCII asociado.
 	```
 
 * int: 
 	```
-	int.toString() -> string; //convierte el int en str
+	itostr(int) -> string; //convierte el int en str
 	```
 
 * float: 
@@ -319,7 +318,7 @@ Operadores binarios que retornan un bool.
 
 	round(float)   -> int; //aplica floor(), si el resultado de decimal() es menor 0.5, ceil() en caso contrario, resultando en un int.  
 
-	float.toString() -> string; //convierte el flot en str
+	ftostr(float) -> string; //convierte el flot en str
 	```
 
 * type[N]:
@@ -328,14 +327,14 @@ Operadores binarios que retornan un bool.
 
 	array1[] + array2[] -> array3[]; //se crea un nuevo arreglo colocando en las primeras n posiciones los n elementos del primer arreglo, y en las m posiciones siguientes los m elementos del segundo arreglo, resultando en un arreglo de n+m elementos.  
 
-	array[].len -> int; // retorna el numero de elementos del arreglo.  
+	lena(array) -> int; // retorna el numero de elementos del arreglo.  
 
 	array[-1] == array[array.len -1]; //azucar sintactica para indexar el arreglo como si fuese circular.  
 
 	array[0...1] == array[0]; //retorna un el conjunto de elementos del elementos indexados en el rango especificado. El rango es inclusivo del lado izquierdo pero no del lado derecho.  
 
 	let int[2] array= [10,11];
-	array.toString() -> [ '[' , '1' , '0' , ',' , '1' , '1' , ']' ]; //"["+ 10.tostring() + "," + 11.tostring() + "]"
+	atostr(array) -> [ '[' , '1' , '0' , ',' , '1' , '1' , ']' ]; //"["+ 10.tostring() + "," + 11.tostring() + "]"
 	```
 
 * str: arreglos de caracteres.
@@ -344,21 +343,21 @@ Operadores binarios que retornan un bool.
 
 	str + str -> str;  //analogo al array.
 
-	str.len -> int;  //analogo al array.
+	lens(str) -> int;  //analogo al array.
 
 	str[-1] == str[str.len];  //analogo al array
 
 	str[0...1] == str[0];  //analogo al array
 
-	str1.split(str2) -> str3[]; //busca el str2 dentro del str1 y genera substrings con los elementos que quedan a cada lado del separador, para construir un arreglo de strings.
+	split(str1, str2) -> str3[]; //busca el str2 dentro del str1 y genera substrings con los elementos que quedan a cada lado del separador, para construir un arreglo de strings.
 
 	str == str;  //comparacion caracter por caracter, solo se pueden comparar str del mismo lenght.
 
 	str != str;  //! (str == str)
 
-	str.toInt() -> int; // verifica que solo existan caracteres [0-9], y luego arma el entero.
+	stoint(str) -> int; // verifica que solo existan caracteres [0-9], y luego arma el entero.
 
-	str.toFloat() -> float;  // verifica que solo existan caracteres [0-9] separados por un unico '.', y luego arma el float.
+	stofloat(str) -> float;  // verifica que solo existan caracteres [0-9] separados por un unico '.', y luego arma el float.
 	```
 
 * list: lista doblemente enlazada. Funciona como una arreglo dinamico.
@@ -367,27 +366,27 @@ Operadores binarios que retornan un bool.
 
 	lista + lista -> lista; //analogo al array.  
 
-	lista.len -> int; //analogo al array.  
+	lenl(lista) -> int; //analogo al array.  
 
 	lista[-1] == lista[lista.len]; //analogo al array. 
 
 	lista[0...1] == lista[0]; //analogo al array.  
 
-	lista.pop(); //elimina el ultimo elemento de la lista, y lo retorna.  
+	pop(lista); //elimina el ultimo elemento de la lista, y lo retorna.  
 
-	lista.pop(int); //elimina el elemento en el indice indicado, y lo retorna.  
+	pop(lista, int); //elimina el elemento en el indice indicado, y lo retorna.  
 
-	lista.push(type_member); //agrega el elemento especificado al final de la lista.  
+	push(lista, type_member); //agrega el elemento especificado al final de la lista.  
 
-	lista.insert(index, type_member); //agrega el elemento especificado en el indice indicado,  
+	insert(lista, index, type_member); //agrega el elemento especificado en el indice indicado,  
 
-	lista.find(element);  //busca un elemento en la lista y si se encuentra retorna el indice. Si no error.
+	find(lista,element);  //busca un elemento en la lista y si se encuentra retorna el indice. Si no error.
 
-	lista.reverse();  //invierte la lista
+	reverse(lista);  //invierte la lista
 
-	lista.remove(type_member); //elimina todas las ocurrencias de un elemento de la lista.  
+	remove(lista,type_member); //elimina todas las ocurrencias de un elemento de la lista.  
 
-	lista.toString() -> string; //analogo al array
+	ltostr(lista) -> string; //analogo al array
 	```
 
 ## I/O:
@@ -410,3 +409,9 @@ flex nombreArchivoLexer.l
 g++ nombreArchivoLexer.yy.c
 ./nombreEjecutable nombreArchivoCodigo.eula      *NOTA: Es importante la extension*
 ```
+
+## Todo:
+* alguien de pana quiere hacer esto?
+	int f = [1,2,3][0];
+* valores default para argumentos en las subrutinas
+	func(a, b=1){}
