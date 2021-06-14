@@ -31,7 +31,7 @@
 }
 
 %define parse.lac full
-%define parse.error verbose
+%define parse.error simple
 
 %locations
 %start Start
@@ -171,6 +171,8 @@ TypePrimitive:  TBOOL                              { ; }
                 
 TypeComposite:  TSTR                               { ; }
                 | TLIST                            { ; }
+                | TSTRUCT                          { ; }
+                | TUNION                           { ; }
 ;
 
 /* Definiciones */
@@ -186,8 +188,8 @@ Assign:         LValue ASSIGN RValue      { ; }
 ;
 RValue:         Exp                                             { ; }
                 | Array                                         { ; }
-                | NEW TypeAux                                   { ; }
-                | INPUT OPAR OptExp CPAR DTWODOTS TypeAux       { ; }
+                | NEW Type                                   { ; }
+                | INPUT OPAR OptExp CPAR DTWODOTS TypePrimitive { ; }
 ;
 
 OptExp:         Exp             { ; }
@@ -220,7 +222,7 @@ Exp:            NUMBER               { ; }
                 | Exp LEQ Exp        { ; }
                 | NOT Exp            { ; }
                 | Exp OBRACKET Exp SOFORTH Exp CBRACKET  { ; }
-                | LValue DOT ID OPAR OptExp CPAR            { ; }
+                | LValue DOT ID OPAR OptExp CPAR         { ; }
 ;
 
 /* Left Values */
@@ -322,7 +324,7 @@ While:          WHILE OPAR Exp CPAR OCURLYBRACKET Inst CCURLYBRACKET    { ; }
 
 void yyerror(const char *s)
 {
-  fprintf(stderr, "Error: %s at line %d, column %d\n", s, yylineno, yycolumn);
+  fprintf(stderr, "Error: %s, unexpected token %s at line %d, column %d\n", s, yytext,yylineno, yycolumn);
 }
 
 int main(int argc, char **argv)
@@ -378,14 +380,13 @@ int main(int argc, char **argv)
         }
     };
 
-    // Print tokens
-    print_tokens(detectedTokens);
-
     fclose(yyin);
     yyin = fopen(argv[1], "r");
 
     // if there are no errors, apply parsing
     if (errors.empty()) {
+        // Print tokens
+        //print_tokens(detectedTokens);
         
         // reset lines and columns
         yylineno = 1;
@@ -393,6 +394,7 @@ int main(int argc, char **argv)
 
         // start parsing
         yyparse();
+
     } else {
         show_queue(errors);
     }
