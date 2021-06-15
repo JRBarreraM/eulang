@@ -453,6 +453,14 @@ class NodeReturn : public node {
     void print(int ident);
 };
 
+class NodeContinue : public node {    
+    void print(int ident);
+};
+
+class NodeBreak : public node {    
+    void print(int ident);
+};
+
 class NodeProcDef : public node {
   protected:
     string id;

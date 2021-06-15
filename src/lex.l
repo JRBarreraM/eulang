@@ -81,6 +81,9 @@ letter  [a-zA-Z]
 "new"                        { return NEW; }
 "vengeance"                  { return VENGEANCE; }
 
+"continue"                   { return CONTINUE; }
+"break"                      { return BREAK; }
+
 "{"                          { return OCURLYBRACKET; }
 "}"                          { return CCURLYBRACKET; }
 "["                          { return OBRACKET; }

@@ -22,6 +22,7 @@
     regex extension("(.*)\\.eula");
 
     NodeStart* root_ast;
+    bool error_sintactico = 0;
 %}
 
 %union 
@@ -158,6 +159,8 @@ Action:         VarInst SEMICOLON               { $$ = $1; }
                 | For                           { $$ = $1; }
                 | VENGEANCE LValue SEMICOLON    { $$ = new NodeVengeance($2); }
                 | PRINT OPAR Exp CPAR SEMICOLON { $$ = new NodePrint($3); }
+                | CONTINUE SEMICOLON            { $$ = new NodeContinue($3); }
+                | BREAK SEMICOLON               { $$ = new NodeBreak($3); }
                 | ID PLUSPLUS SEMICOLON         { $$ = new NodeAssign(new NodeIDLValue($1), new NodeBinaryOperator(new NodeIDLValue($1), "+", new NodeINT(1) )); }
                 | ID MINUSMINUS SEMICOLON       { $$ = new NodeAssign(new NodeIDLValue($1), new NodeBinaryOperator(new NodeIDLValue($1), "-", new NodeINT(1) )); }
 ;

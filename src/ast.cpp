@@ -271,6 +271,18 @@ void NodeInst::print(int ident){
     inst->print(ident);
 }
 
+void NodeBreak::print(int ident){
+    for(int i = 0; i < ident; i++)
+        cout << "  ";
+    cout << "BREAK" << endl;
+}
+
+void NodeContinue::print(int ident){
+    for(int i = 0; i < ident; i++)
+        cout << "  ";
+    cout << "CONTINUE" << endl;
+}
+
 void NodeAssign::print(int ident){
     for(int i = 0; i < ident; i++)
         cout << "  ";
