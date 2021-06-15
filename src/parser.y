@@ -5,6 +5,7 @@
     #include <iostream>
     #include <regex>
     #include "token.hpp"
+    #include "ast.hpp"
     using namespace std;
 
     extern int yylex(void);
@@ -19,6 +20,8 @@
     void yyerror(const char *s);
     
     regex extension("(.*)\\.eula");
+
+    NodeStart* root_ast;
 %}
 
 %union 
@@ -26,8 +29,10 @@
   int   integer;
   float flot;
   bool  boolean;
-  char  *str;
+  char* str;
   char  ch;
+  node* ast;
+  NodeStart* ns;
 }
 
 %define parse.lac full
@@ -45,14 +50,14 @@
 %token ASSIGN 6
 /*  */
 %token LET 7
-%token TINT 8
-%token TBOOL 9
-%token TFLOAT 10
-%token TCHAR 11
-%token TSTR 12
+%token <str> TINT 8
+%token <str> TBOOL 9
+%token <str> TFLOAT 10
+%token <str> TCHAR 11
+%token <str> TSTR 12
 %token TSTRUCT 13
 %token TUNION 14
-%token TLIST 15
+%token <str> TLIST 15
 %token TILDE 16
 %token DEREF 17
 %token ROOF 18
@@ -81,31 +86,40 @@
 %token OPAR 36
 %token CPAR 37
 /*  */
-%token ADD 38
-%token SUB 39
-%token MUL 40
-%token DIV 41
-%token MOD 42
-%token POW 43
+%token <str> ADD 38
+%token <str> SUB 39
+%token <str> MUL 40
+%token <str> DIV 41
+%token <str> MOD 42
+%token <str> POW 43
 %token PLUSPLUS 44
 %token MINUSMINUS 45
-%token NOT 46
-%token OR 47
-%token AND 48
-%token EQUALS 49
-%token NEQUALS 50
-%token GREATER 51
-%token LESS 52
-%token GEQ 53
-%token LEQ 54
+%token <str> NOT 46
+%token <str> OR 47
+%token <str> AND 48
+%token <str> EQUALS 49
+%token <str> NEQUALS 50
+%token <str> GREATER 51
+%token <str> LESS 52
+%token <str> GEQ 53
+%token <str> LEQ 54
 
 %token <integer>  NUMBER 55
 %token <flot>     DECIMAL 56
-%token <id>       ID 57
-%token <chr>      CHAR 58
+%token <str>      ID 57
+%token <ch>       CHAR 58
 %token <str>      STRING 59
 %token <boolean>  TRUE 60
 %token <boolean>  FALSE 61
+
+%type <ast>     Inst InstAux Action FuncActions FuncInst FuncBody 
+%type <ast>     ProcInst ProcBody Definition Type TypeAux TypePrimitive TypeComposite
+%type <ast>     VarInst VarDef OptAssign Assign RValue InputType OptExp Exp
+%type <ast>     LValue DefFunc FuncPar ParList CallFunc ArgElems ArgList
+%type <ast>     DefProc Array ArrExp ArrElems DefUnion UnionBody DefStruct StructBody
+%type <ast>     Selection OptElif OptElse For Range While
+%type <boolean> OptRoof
+%type <ns>      Start
 
 // Precedence
 
@@ -128,203 +142,204 @@
 %%
 
 /* Estructura del programa */
-Start:          Inst                  { ; }
-                | /* lambda */        { ; }
+Start:          Inst                  { $$ = new NodeStart($1); root_ast = $$;}
+                | /* lambda */        { $$ = NULL; }
 ;
-Inst:           InstAux               { ; }
-                | Inst InstAux        { ; }
+Inst:           InstAux               { $$ = new NodeInst($1); }
+                | Inst InstAux        { $$ = new NodeInst($2, $1); }
 ;
-InstAux:        Action                { ; }
-	            | Definition          { ; }
+InstAux:        Action                { $$ = $1; }
+	            | Definition          { $$ = $1; }
 ;
-Action:         VarInst SEMICOLON               { ; }
-                | CallFunc SEMICOLON            { ; }
-                | Selection                     { ; }
-                | While                         { ; }
-                | For                           { ; }
-                | VENGEANCE LValue SEMICOLON    { ; }
-                | PRINT OPAR Exp CPAR SEMICOLON { ; }
-                | ID PLUSPLUS SEMICOLON         { ; }
-                | ID MINUSMINUS SEMICOLON       { ; }
+Action:         VarInst SEMICOLON               { $$ = $1; }
+                | CallFunc SEMICOLON            { $$ = $1; }
+                | Selection                     { $$ = $1; }
+                | While                         { $$ = $1; }
+                | For                           { $$ = $1; }
+                | VENGEANCE LValue SEMICOLON    { $$ = new NodeVengeance($2); }
+                | PRINT OPAR Exp CPAR SEMICOLON { $$ = new NodePrint($3); }
+                | ID PLUSPLUS SEMICOLON         { $$ = new NodeAssign(new NodeIDLValue($1), new NodeBinaryOperator(new NodeIDLValue($1), "+", new NodeINT(1) )); }
+                | ID MINUSMINUS SEMICOLON       { $$ = new NodeAssign(new NodeIDLValue($1), new NodeBinaryOperator(new NodeIDLValue($1), "-", new NodeINT(1) )); }
 ;
-FuncActions:    FuncActions Action { ; }
-                | Action           { ; }
+FuncActions:    Action                          { $$ = $1; }
+                | RETURN Exp SEMICOLON          { $$ = new NodeReturn($2); }
 ;
-FuncInst:       FuncActions        { ; }
-	            | /* lambda */     { ; }
+FuncInst:       FuncInst FuncActions        { $$ = new NodeInst($2, $1); }
+                | FuncActions               { $$ = new NodeInst($1); }
 ;
-Definition:     DefUnion          { ; }
-                | DefStruct       { ; }
-                | DefProc         { ; }
-                | DefFunc         { ; }
+ProcInst:       ProcInst Action         { $$ = new NodeInst($2, $1); }
+                | Action                { $$ = new NodeInst($1); }
+;
+ProcBody:       ProcInst            { $$ = $1; }
+	            | /* lambda */      { $$ = NULL; }
+; 
+FuncBody:       FuncInst            { $$ = $1; }
+	            | /* lambda */      { $$ = NULL; }
+;
+Definition:     DefUnion          { $$ = $1; }
+                | DefStruct       { $$ = $1; }
+                | DefProc         { $$ = $1; }
+                | DefFunc         { $$ = $1; }
 ;
 
 /* Tipos */
-Type:           TypeAux                                 { ; }
-                | TypeAux OBRACKET Exp CBRACKET         { ; }
-                | TypeAux TILDE  	                    { ; }
+Type:           TypeAux                                 { $$ = $1; }
+                | TypeAux OBRACKET Exp CBRACKET         { $$ = new NodeTypeArrayDef($1, $3); }
+                | TypeAux TILDE  	                    { $$ = new NodeTypePointerDef($1); }
 ;
 
-TypeAux:        TypePrimitive                      { ; }
-                | TypeComposite                    { ; }
+TypeAux:        TypePrimitive                      { $$ = $1; }
+                | TypeComposite                    { $$ = $1; }
 ;
 
-TypePrimitive:  TBOOL                              { ; }
-                | TCHAR                            { ; }
-                | TINT                             { ; }
-                | TFLOAT                           { ; }
+TypePrimitive:  TBOOL                              { $$ = new NodeTypePrimitiveDef($1); }
+                | TCHAR                            { $$ = new NodeTypePrimitiveDef($1); }
+                | TINT                             { $$ = new NodeTypePrimitiveDef($1); }
+                | TFLOAT                           { $$ = new NodeTypePrimitiveDef($1); }
 ;
                 
-TypeComposite:  TSTR                               { ; }
-                | TLIST                            { ; }
-                | ID                               { ; }
+TypeComposite:  TSTR                               { $$ = new NodeTypePrimitiveDef($1); }
+                | TLIST                            { $$ = new NodeTypePrimitiveDef($1); }
+                | ID                               { $$ = new NodeTypePrimitiveDef($1); }
 ;
 
 /* Definiciones */
-VarInst:        VarDef                    { ; }
-	            | Assign                  { ; }
+VarInst:        VarDef                    { $$ = $1; }
+	            | Assign                  { $$ = $1; }
 ;
-VarDef:         LET Type ID OptAssign     { ; }
+VarDef:         LET Type ID OptAssign     { $$ = new NodeVarDef($2, $3, $4); }
 ;
-OptAssign:      ASSIGN RValue             { ; }
-	            | /* lambda */            { ; }
+OptAssign:      ASSIGN RValue             { $$ = $2; }
+	            | /* lambda */            { $$ = NULL; }
 ;
-Assign:         LValue ASSIGN RValue      { ; }
+Assign:         LValue ASSIGN RValue      { $$ = new NodeAssign($1, $3); }
 ;
-RValue:         Exp                                             { ; }
-                | Array                                         { ; }
-                | NEW Type                                      { ; }
-                | INPUT OPAR OptExp CPAR DTWODOTS InputType     { ; }
+RValue:         Exp                                             { $$ = $1; }
+                | Array                                         { $$ = $1; }
+                | NEW Type                                      { $$ = new NodeNew($2); }
+                | INPUT OPAR OptExp CPAR DTWODOTS InputType     { $$ = new NodeInput($6, $3); }
 ;
-InputType:      TypePrimitive   { ; }
-                | TSTR          { ; }
+InputType:      TypePrimitive   { $$ = $1; }
+                | TSTR          { $$ = new NodeTypePrimitiveDef($1); }
 ;
-OptExp:         Exp                  { ; }
-                | /* Lambda */       { ; }
+OptExp:         Exp                  { $$ = $1; }
+                | /* Lambda */       { $$ = NULL; }
 ;
 /* Expresiones */
-Exp:            NUMBER               { ; }
-                | DECIMAL            { ; }
-                | LValue             { ; }
-                | TRUE               { ; }
-                | FALSE              { ; }
-                | CHAR               { ; }
-                | STRING             { ; }
-                | CallFunc           { ; }
-                | Exp ADD Exp        { ; }
-                | Exp SUB Exp        { ; }
-                | Exp MUL Exp        { ; }
-                | Exp DIV Exp        { ; }
-                | Exp MOD Exp        { ; }
-                | SUB Exp            { ; }
-                | Exp POW Exp        { ; }
-                | OPAR Exp CPAR      { ; }
-                | Exp AND Exp        { ; }
-                | Exp OR Exp         { ; }
-                | Exp EQUALS Exp     { ; }
-                | Exp NEQUALS Exp    { ; }
-                | Exp GREATER Exp    { ; }
-                | Exp LESS Exp       { ; }
-                | Exp GEQ Exp        { ; }
-                | Exp LEQ Exp        { ; }
-                | NOT Exp            { ; }
-                | Exp OBRACKET Exp SOFORTH Exp CBRACKET  { ; }
+Exp:            NUMBER               { $$ = new NodeINT($1); }
+                | DECIMAL            { $$ = new NodeFLOAT($1); }
+                | LValue             { $$ = $1; }
+                | TRUE               { $$ = new NodeBOOL(true); }
+                | FALSE              { $$ = new NodeBOOL(false); }
+                | CHAR               { $$ = new NodeCHAR($1); }
+                | STRING             { $$ = new NodeSTRING($1); }
+                | CallFunc           { $$ = $1; }
+                | Exp ADD Exp        { $$ = new NodeBinaryOperator($1, $2, $3); }
+                | Exp SUB Exp        { $$ = new NodeBinaryOperator($1, $2, $3); }
+                | Exp MUL Exp        { $$ = new NodeBinaryOperator($1, $2, $3); }
+                | Exp DIV Exp        { $$ = new NodeBinaryOperator($1, $2, $3); }
+                | Exp MOD Exp        { $$ = new NodeBinaryOperator($1, $2, $3); }
+                | SUB Exp            { $$ = new NodeUnaryOperator($1, $2); }
+                | Exp POW Exp        { $$ = new NodeBinaryOperator($1, $2, $3); }
+                | OPAR Exp CPAR      { $$ = $2; }
+                | Exp AND Exp        { $$ = new NodeBinaryOperator($1, $2, $3);; }
+                | Exp OR Exp         { $$ = new NodeBinaryOperator($1, $2, $3);; }
+                | Exp EQUALS Exp     { $$ = new NodeBinaryOperator($1, $2, $3);; }
+                | Exp NEQUALS Exp    { $$ = new NodeBinaryOperator($1, $2, $3);; }
+                | Exp GREATER Exp    { $$ = new NodeBinaryOperator($1, $2, $3);; }
+                | Exp LESS Exp       { $$ = new NodeBinaryOperator($1, $2, $3);; }
+                | Exp GEQ Exp        { $$ = new NodeBinaryOperator($1, $2, $3);; }
+                | Exp LEQ Exp        { $$ = new NodeBinaryOperator($1, $2, $3);; }
+                | NOT Exp            { $$ = new NodeUnaryOperator($1, $2); }
+                | Exp OBRACKET Exp SOFORTH Exp CBRACKET  { $$ = new NodeSubArray($1, $3, $5); }
 ;
 
 /* Left Values */
-LValue:         ID                             { ; }
-                | LValue OBRACKET Exp CBRACKET { ; }
-                | LValue DOT ID                { ; }
-                | DEREF LValue                 { ; }
+LValue:         ID                             { $$ = new NodeIDLValue($1); }
+                | LValue OBRACKET Exp CBRACKET { $$ = new NodeArrayLValue($1, $3); }
+                | LValue DOT ID                { $$ = new NodeLValueDot($1, $3); }
+                | DEREF LValue                 { $$ = new NodePointerLValue($2); }
 ;
 
 /* Funciones */
-DefFunc:        FUNC ID OPAR FuncPar CPAR DTWODOTS TypePrimitive OCURLYBRACKET FuncBody CCURLYBRACKET { ; }
+DefFunc:        FUNC ID OPAR FuncPar CPAR DTWODOTS TypePrimitive OCURLYBRACKET FuncBody CCURLYBRACKET { $$ = new NodeFuncDef($2, $4, $9, $7); }
 ;
 
-FuncBody:       FuncInst RETURN Exp SEMICOLON     { ; }
+FuncPar:        ParList                 { $$ = $1; }
+                | /* lambda */          { $$ = NULL; }
 ;
 
-FuncPar:        ParList                 { ; }
-                | /* lambda */          { ; }
+ParList:        ParList COMMA Type OptRoof ID   { $$ = new NodeRoutineArgsDef($3, $4, $5, $1); }
+                | Type OptRoof ID               { $$ = new NodeRoutineArgsDef($1, $2, $3); }
 ;
 
-ParList:        ParList COMMA Type OptRoof ID   { ; }
-                | Type OptRoof ID               { ; }
+OptRoof:        ROOF                    { $$ = true; }
+                | /* Lambda */          { $$ = false; }
 ;
 
-OptRoof:        ROOF                    { ; }
-                | /* Lambda */          { ; }
+CallFunc:       ID OPAR ArgElems CPAR { $$ = new NodeCallFunction($1, $3); }
 ;
 
-CallFunc:       ID OPAR ArgElems CPAR { ; }
+ArgElems:   ArgList                             { $$ = $1; }
+	        | /* lambda */                      { $$ = NULL; }
 ;
 
-ArgElems:   ArgList                             { ; }
-	        | /* lambda */                      { ; }
-;
-
-ArgList:    RValue                              { ; }
-            | ArgList COMMA RValue              { ; }
+ArgList:    RValue                              { $$ = new NodeCallFunctionArgs($1); }
+            | ArgList COMMA RValue              { $$ = new NodeCallFunctionArgs($3, $1); }
 ;
 
 /* Procedimientos */
-DefProc:        PROC ID OPAR FuncPar CPAR OCURLYBRACKET FuncActions CCURLYBRACKET { ; }
+DefProc:        PROC ID OPAR FuncPar CPAR OCURLYBRACKET ProcBody CCURLYBRACKET { $$ = new NodeProcDef($2, $4, $7); }
 ;
 
 /* Arreglos */
-Array:          OBRACKET ArrExp CBRACKET   { ; }
+Array:          OBRACKET ArrExp CBRACKET   { $$ = new NodeArray($2); }
 ;
 
-ArrExp:         ArrElems                { ; }
-                | NUMBER SOFORTH NUMBER { ; }
-                | NUMBER SOFORTH ID     { ; }
-                | ID SOFORTH NUMBER     { ; }
-                | ID SOFORTH ID         { ; }
+ArrExp:         ArrElems                { $$ = $1; }
+                | Exp SOFORTH Exp       { $$ = new NodeArrayRange($1, $3); }
 ;
 
-ArrElems:       ArrElems COMMA RValue    { ; }
-		        | RValue                 { ; }
+ArrElems:       ArrElems COMMA RValue    { $$ = new NodeArrayElems($3, $1); }
+		        | RValue                 { $$ = new NodeArrayElems($1); }
 ;
 
 /* Union */
-DefUnion:       TUNION ID OCURLYBRACKET UnionBody CCURLYBRACKET   { ; }
+DefUnion:       TUNION ID OCURLYBRACKET UnionBody CCURLYBRACKET   { $$ = new NodeUnionDef($2, $4); }
 ;
 
-UnionBody:      LET Type ID SEMICOLON           { ; }
-		|       UnionBody LET Type ID SEMICOLON     { ; }
+UnionBody:      LET Type ID SEMICOLON               { $$ = new NodeUnionFields($3, $2); }
+		|       UnionBody LET Type ID SEMICOLON     { $$ = new NodeUnionFields($4, $3, $1); }
 ;
 
 /* Struct */
-DefStruct:      TSTRUCT ID OCURLYBRACKET StructBody CCURLYBRACKET { ; }
+DefStruct:      TSTRUCT ID OCURLYBRACKET StructBody CCURLYBRACKET { $$ = new NodeStructDef($2, $4); }
 ;
 
-StructBody:     VarDef SEMICOLON             { ; }
-		|       StructBody VarDef SEMICOLON  { ; }
+StructBody:     VarDef SEMICOLON             { $$ = new NodeStructFields($1); }
+		|       StructBody VarDef SEMICOLON  { $$ = new NodeStructFields($2, $1); }
 ;
 
 /* Condicionales */
-Selection:    IF OPAR Exp CPAR OCURLYBRACKET Inst CCURLYBRACKET OptElif OptElse { ; }
+Selection:    IF OPAR Exp CPAR OCURLYBRACKET Inst CCURLYBRACKET OptElif OptElse { $$ = new NodeConditional($3, $6, $8, $9); }
 ;
-OptElif:        Elif OptElif            { ; }
-		|       /* lambda */            { ; }
+OptElif:           ELIF OPAR Exp CPAR OCURLYBRACKET Inst CCURLYBRACKET OptElif  { $$ = new NodeElif($3, $6, $8); }
+                | /* lambda */                                                  { $$ = NULL; }
 ;
-Elif:           ELIF OPAR Exp CPAR OCURLYBRACKET Inst CCURLYBRACKET     { ; }
-;
-OptElse:        ELSE OCURLYBRACKET Inst CCURLYBRACKET   { ; }
-		|       /* lambda */                            { ; }
+OptElse:        ELSE OCURLYBRACKET Inst CCURLYBRACKET   { $$ = new NodeElse($3); }
+		|       /* lambda */                            { $$ = NULL; }
 ;
 
 /* For Loop */
-For:            FOR OPAR ID IN Range CPAR OCURLYBRACKET Inst CCURLYBRACKET    { ; }
+For:            FOR OPAR ID IN Range CPAR OCURLYBRACKET Inst CCURLYBRACKET    { $$ = new NodeFor($3, $5, $8); }
 ;
 
-Range:          Exp         { ; }
-                | Array     { ; }
+Range:          Exp         { $$ = $1; }
+                | Array     { $$ = $1; }
 ;
 
 /* While Loop */
-While:          WHILE OPAR Exp CPAR OCURLYBRACKET Inst CCURLYBRACKET    { ; }
+While:          WHILE OPAR Exp CPAR OCURLYBRACKET Inst CCURLYBRACKET    { $$ = new NodeWhile($3, $6); }
 ;
 %%
 
@@ -431,5 +446,7 @@ int main(int argc, char **argv)
     } else {
         show_queue(errors);
     }
+
+    root_ast->print(0);
     return 0;
 }

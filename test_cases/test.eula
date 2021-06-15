@@ -6,9 +6,9 @@ proc count_and_print(int counter, str hola)
 /* 
 
 */
-let int counter = [1,2,3][0];
+let int counter = [1,2,3];
 
-for i in [counter...24]       //(int i = counter; i < 25; i++)
+for (i in [counter...24])       //(int i = counter; i < 25; i++)
 {
     count_and_print(i);
 }

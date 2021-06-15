@@ -7,322 +7,358 @@ class node {
   public:
     node() {};
     // Print a node representation.
-    virtual void print(void) { };
+    virtual void print(int ident) { };
 };
 
 /* */
-class node_BOOL : public node {
+class NodeBOOL : public node {
   protected:
     bool value;
 
   public:
-    node_BOOL(bool value);
+    NodeBOOL(bool value)
+      : value(value) {};
 
-    void print(void);
+    void print(int ident);
 };
 
-class node_CHAR : public node {
+class NodeCHAR : public node {
   protected:
     char value;
 
   public:
-    node_CHAR(char value);
+    NodeCHAR(char value)
+      : value(value) {};
 
-    void print(void);
+    void print(int ident);
 };
 
-class node_INT : public node {
+class NodeINT : public node {
   protected:
     int value;
 
   public:
-    node_INT(int value);
+    NodeINT(int value)
+      : value(value) {};
 
-    void print(void);
+    void print(int ident);
 };
 
-class node_FLOAT : public node {
+class NodeFLOAT : public node {
   protected:
     float value;
 
   public:
-    node_FLOAT(float value);
+    NodeFLOAT(float value)
+    : value(value) {};
 
-    void print(void);
+    void print(int ident);
 };
 
-class node_STRING : public node {
+class NodeSTRING : public node {
   protected:
     string value;
 
   public:
-    node_STRING(string value);
+    NodeSTRING(string value)
+    : value(value) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* EXPRESSIONS  */
 /* Representation of: binary operators. */
-class node_BinaryOperator : public node {
+class NodeBinaryOperator : public node {
   protected:
     node* left;
     string op;
     node* right;
 
   public:
-    node_BinaryOperator(node *left, string op, node *rigth);
+    NodeBinaryOperator(node *left, string op, node *right)
+    : left(left), op(op), right(right) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* Representation of: unary operations. */
-class node_UnaryOperator : public node {
+class NodeUnaryOperator : public node {
   protected:
     string op;
     node *exp;
 
   public:
-    node_UnaryOperator(string op, node *exp);
+    NodeUnaryOperator(string op, node *exp)
+    : op(op), exp(exp) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* HEAP NODES  */
 /* Representation of: new Type. */
-class node_New : public node {
+class NodeNew : public node {
   protected:
     node *type;
 
   public:
-    node_New(node *type);
+    NodeNew(node *type)
+    : type(type) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* Representation of: vengeance Type. */
-class node_Vengeance : public node {
+class NodeVengeance : public node {
   protected:
     node *lvalue;
 
   public:
-    node_Vengeance(node *lvalue);
+    NodeVengeance(node *lvalue)
+    : lvalue(lvalue) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* TYPEDEF NODES  */
 /* Class for defined types. */
-class node_TypePrimitiveDef : public node {
+class NodeTypePrimitiveDef : public node {
   protected:
-    string id;
+    string type;
 
   public:
-    node_TypePrimitiveDef(string id);
+    NodeTypePrimitiveDef(string type)
+    : type(type) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* Representation of: Type ~. */
-class node_TypePointerDef : public node {
+class NodeTypePointerDef : public node {
   protected:
     node *type;
 
   public:
-    node_TypePointerDef(node *type);
+    NodeTypePointerDef(node *type)
+    : type(type) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* Representation of: Type [ Exp ]. */
-class node_TypeArrayDef : public node {
+class NodeTypeArrayDef : public node {
   protected:
     node *type;
     node *size;
 
   public:
-    node_TypeArrayDef(node *type, node *size);
+    NodeTypeArrayDef(node *type, node *size)
+    : type(type), size(size) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* Representation of: Type ID = RValue. */
-class node_VarDef : public node {
+class NodeVarDef : public node {
   protected:
     node *type;
     string id;
     node *rvalue;
 
   public:
-    node_VarDef(node *type, string id, node *rvalue = NULL);
+    NodeVarDef(node *type, string id, node *rvalue = NULL)
+    : type(type), id(id), rvalue(rvalue) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* LVALUE NODES  */
 /* Class for defined id lvalues. */
-class node_IDLValue : public node {
+class NodeIDLValue : public node {
   protected:
     string id;
 
   public:
-    node_IDLValue(string id);
+    NodeIDLValue(string id)
+    : id(id) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* Representation of: LValue . ID. */
-class node_LValueDot : public node {
+class NodeLValueDot : public node {
   protected:
     node *lvalue;
     string id;
 
   public:
-    node_LValueDot(node *lvalue, string id);
+    NodeLValueDot(node *lvalue, string id)
+    : lvalue(lvalue), id(id) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* Representation of: &LValue. */
-class node_PointerLValue : public node {
+class NodePointerLValue : public node {
   protected:
     node *lvalue;
 
   public:
-    node_PointerLValue(node *lvalue);
+    NodePointerLValue(node *lvalue)
+    : lvalue(lvalue) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* Representation of: LValue [ Exp ]. */
-class node_ArrayLValue : public node {
+class NodeArrayLValue : public node {
   protected:
     node *lvalue;
     node *index;
 
   public:
-    node_ArrayLValue(node *lvalue, node *index);
+    NodeArrayLValue(node *lvalue, node *index)
+    : lvalue(lvalue), index(index) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* Representation of: LValue [ Exp ... Exp ]. */
-class node_SubArray : public node {
+class NodeSubArray : public node {
   protected:
     node *lvalue;
     node *indexStart;
     node *indexEnd;
 
   public:
-    node_ArrayLValue(node *lvalue, node *indexStart, node *indexEnd);
+    NodeSubArray(node *lvalue, node *indexStart, node *indexEnd)
+    : lvalue(lvalue), indexStart(indexStart), indexEnd(indexEnd) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* ARRAY NODES  */
 /* Representation of arrays. */
-class node_Array : public node {
+class NodeArray : public node {
   protected:
     node *elems;
 
   public:
-    node_Array(node *elems);
+    NodeArray(node *elems)
+    : elems(elems) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* Representation of: RValue , ArrElems. */
-class node_ArrayElems : public node {
+class NodeArrayElems : public node {
   protected:
     node *rvalue;
     node *head;
 
   public:
-    node_ArrayElems(node *rvalue, node *head = NULL);
+    NodeArrayElems(node *rvalue, node *head = NULL)
+      : rvalue(rvalue), head(head) {};
 
-    void print(void);
+    void print(int ident);
+};
+
+class NodeArrayRange : public node {
+  protected:
+    node* min;
+    node* max;
+  
+  public:
+    NodeArrayRange(node* min, node* max)
+      : min(min), max(max) {}
+    
+    void print(int ident);
 };
 
 /* FUNCTION CALL NODES */
 /* Representation of: function calls. */
-class node_CallFunction : public node {
+class NodeCallFunction : public node {
   protected:
     string id;
     node *args;
-    bool end_inst;
 
   public:
-    node_CallFunction(string id, node *args, bool end_inst);
+    NodeCallFunction(string id, node *args)
+    : id(id), args(args) {};
 
-    void print(void);
-
-    void set_end_inst(void);
+    void print(int ident);
 };
 
 /* Representation of: RValue , FuncArgs. */
-class node_CallFunctionArgs : public node {
+class NodeCallFunctionArgs : public node {
   protected:
     node *head;
     node *rvalue;
 
   public:
-    node_CallFunctionArgs(node *rvalue, node *head = NULL);
+    NodeCallFunctionArgs(node *rvalue, node *head = NULL)
+    : rvalue(rvalue), head(head) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* UNION DEF NODES */
 /* Representation of: union definition. */
-class node_UnionDef : public node {
+class NodeUnionDef : public node {
   protected:
     string id;
     node *fields;
 
   public:
-    node_UnionDef(string id, node *fields);
+    NodeUnionDef(string id, node *fields)
+    : id(id), fields(fields) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* Representation of: UnionBody LET Type ID SEMICOLON  */
-class node_UnionFields : public node {
+class NodeUnionFields : public node {
   protected:
     node *head;
-    node *field;
+    string id;
+    node *type;
 
   public:
-    node_UnionFields(node *field, node *head=NULL);
+    NodeUnionFields(string id, node *type, node *head=NULL)
+    : id(id), type(type), head(head) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* STRUCT DEF NODES */
 /* Representation of struct definition. */
-class node_StructDef : public node {
+class NodeStructDef : public node {
   protected:
     string id;
     node *fields;
 
   public:
-    node_RegDef(string id, node *fields);
+    NodeStructDef(string id, node *fields)
+    : id(id), fields(fields) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* Representation of: StructBody VarDef;  */
-class node_StructFields : public node {
+class NodeStructFields : public node {
   protected:
     node *head;
-    node *field;
+    node *fields;
 
   public:
-    node_StructFields(node *field, node *head=NULL);
+    NodeStructFields(node *fields, node *head=NULL)
+    : fields(fields), head(head) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* CONDITIONAL DEF NODES */
 /* Representation of if-elif-else blocks. */
-class node_Conditional : public node {
+class NodeConditional : public node {
   protected:
     node *cond;
     node *body;
@@ -330,120 +366,178 @@ class node_Conditional : public node {
     node *else_def;
 
   public:
-    node_Conditional(node *cond, node *body, node *elifs, node *else_def);
+    NodeConditional(node *cond, node *body, node *elifs, node *else_def)
+    : cond(cond), body(body), elifs(elifs), else_def(else_def) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* Representation of: ELIF OPAR Exp CPAR OCURLYBRACKET Inst CCURLYBRACKET. */
-class node_Elif : public node {
+class NodeElif : public node {
   protected:
-    node *head;
+    node *elifs;
     node *cond;
     node *body;
 
   public:
-    node_Elif(node *cond, node *body, node *head = NULL);
+    NodeElif(node *cond, node *body, node *elifs = NULL)
+    : cond(cond), body(body), elifs(elifs) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* Representation of: ELSE OCURLYBRACKET Inst CCURLYBRACKET. */
-class node_Else : public node {
+class NodeElse : public node {
   protected:
     node *body;
 
   public:
-    node_Else(node *body);
+    NodeElse(node *body)
+    : body(body) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* LOOP NODES  */
 /* Representation of while blocks. */
-class node_While : public node {
+class NodeWhile : public node {
   protected:
     node *cond;
     node *body;
 
   public:
-    node_While(node *cond, node *body);
+    NodeWhile(node *cond, node *body)
+    : cond(cond), body(body) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* Representation of for blocks. */
-class node_For : public node {
+class NodeFor : public node {
   protected:
     string iter;
     node *range;
     node *body;
 
   public:
-    node_For(string iter, node *range, node *body);
+    NodeFor(string iter, node *range, node *body)
+    : iter(iter), range(range), body(body) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* PROC and FUNC DEF NODES  */
 /* Representation of proc and func definition. */
-class node_RoutineDef : public node {
+class NodeFuncDef : public node {
   protected:
     string id;
     node *args;
     node *body;
-    node *ret;
+    node* type;
 
   public:
-    node_RoutineDef(string id, node *args, node *body, node *ret=NULL);
+    NodeFuncDef(string id, node *args, node *body, node* type)
+    : id(id), args(args), body(body), type(type) {};
 
-    void print(void);
+    void print(int ident);
 };
 
-class node_RoutineArgsDef : public node {
+class NodeReturn : public node {
   protected:
-    node *head;
+    node* exp;
+  
+  public:
+    NodeReturn(node* exp)
+      : exp(exp) {};
+    
+    void print(int ident);
+};
+
+class NodeProcDef : public node {
+  protected:
+    string id;
+    node *args;
+    node *body;
+
+  public:
+    NodeProcDef(string id, node *args, node *body)
+    : id(id), args(args), body(body) {};
+
+    void print(int ident);
+};
+
+class NodeRoutineArgsDef : public node {
+  protected:
+    node *args;
     node *type;
     bool ref;
     string id;
 
   public:
-    node_RoutArgsDef(node *type, bool ref, string id, node *head=NULL);
+    NodeRoutineArgsDef(node *type, bool ref, string id, node *args=NULL)
+    : type(type), ref(ref), id(id), args(args) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* Representacion of: Inst InstAux */
-class node_Inst : public node {
+class NodeInst : public node {
   protected:
     node *head;
     node *inst;
 
   public:
-    node_Inst(node *inst, node *head=NULL);
+    NodeInst(node *inst, node *head=NULL)
+    : inst(inst), head(head) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* INSTRUCTION NODES  */
-class node_Assign : public node {
+class NodeAssign : public node {
   protected:
     node *lvalue;
     node *rvalue;
 
   public:
-    node_Assign(node *lvalue, node *rvalue);
+    NodeAssign(node *lvalue, node *rvalue)
+    : lvalue(lvalue), rvalue(rvalue) {};
 
-    void print(void);
+    void print(int ident);
 };
 
 /* Root node. */
-class node_S {
+class NodeStart {
   protected:
     node *inst;
 
   public:
-    node_S(node *inst);
+    NodeStart(node *inst)
+      : inst(inst) {};
 
-    void print(void);
+    void print(int ident);
+};
+
+/* Nodes for I/0 */
+class NodePrint : public node {
+  protected:
+    node* exp;
+  
+  public:
+    NodePrint(node* exp)
+    : exp(exp) {};
+
+    void print(int ident);
+};
+
+class NodeInput : public node {
+  protected:
+    node* type;
+    node* exp;
+  
+  public:
+    NodeInput(node* type, node* exp=NULL)
+    : exp(exp), type(type){};
+
+    void print(int ident);
 };
