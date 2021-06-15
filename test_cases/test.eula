@@ -1,19 +1,20 @@
 proc count_and_print(int counter, str hola) 
 {
-    count++;
-    print(count.toString);  
+    counter++;
+    print(hola);
+    print(itostr(counter));
 }
 /* 
 
 */
-let int counter = [1,2,3];
-
+let int counter = 1;
+let str final = "El numero final es ";
 for (i in [counter...24])       //(int i = counter; i < 25; i++)
 {
-    count_and_print(i);
+    count_and_print(i, final);
 }
 
-let str final = "El numero final es ";
-
+let int a = 1;
 // Chequeamos cual es el valor final
-print(toInt(a) + counter);
+print(final);
+print(a + counter);
