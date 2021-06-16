@@ -14,6 +14,14 @@ for (i in [counter...24])       //(int i = counter; i < 25; i++)
     count_and_print(i, final);
 }
 
+if(true){
+    struct ura {
+        let int a;
+        let int b = 3;
+        let char c;
+    }
+}
+
 let int a = 1;
 // Chequeamos cual es el valor final
 print(final);

@@ -1,129 +1,85 @@
-#include <vector>
-#include <deque>
-#include <map>
-#include <string>
-#include <iostream>
-#include <algorithm>
-#include "parser.tab.h"
 #include "symbol_table.hpp"
 using namespace std;
 
-extern bool error_sintactico;
+/* Symbol */
+bool symbol::operator==(const symbol & rhs) const { return (this->scope == rhs.scope && this->id == rhs.id);}
 
-/*  */
-class table_element {
-	public:
-		string id;
-		int scope;
-		int child_scope;
+void symbol::print(){
+	cout << "SCOPE: " << scope;
+}
 
-		table_element(string i, int s): id(i), scope(s), child_scope(-1){};
+/* Symbol Table */
+sym_table::sym_table() {
+	last_scope = 1;
+	scope_stack.push_back(last_scope);
+}
 
-		bool operator==(const table_element & rhs) const { return (this->scope == rhs.scope && this->id == rhs.id);}
+int sym_table::new_scope() {
+	last_scope++;
+	scope_stack.push_back(last_scope);
+	return last_scope;
+}
 
-		void set_scope(int s){
-			scope = s;
-		}
+void sym_table::exit_scope() {
+	if(!scope_stack.empty())
+		scope_stack.pop_back();
+}
 
-		void set_child_scope(int s){
-			child_scope = s;
-		}
+bool sym_table::check_redef(string id) {
+	symbol *p = lookup(id);
+	if(p && p->scope == scope_stack.back()) {
+		return true;
+	}
+	return false;
+}
 
-		void print(){
-			cout << "SCOPE: " << scope;
-			if (child_scope != -1)
-				cout << ", CHILD SCOPE: " << child_scope ; 
-		}
-};
+bool sym_table::insert(string id) {
+	// First check if id is in last scope
+	if(table.find(id) == table.end())
+		table[id];
 
+	if(check_redef(id))
+		return false;
+	
+	// Check if variable is already defined in scope
+	
+	table[id].push_front(new symbol(id, "Here goes category", scope_stack.back()));
+	return true;
+}
 
-/* Definicion de la tabla de simbolos */
-class sym_table {
-	private:
-		map<string, deque<table_element> > tabla;
-		vector<int> stack;
-		int last_scope;
-	public:
-		sym_table() : last_scope(0) {stack.push_back(last_scope);}
-
-		int new_scope(){
-			last_scope++;
-			stack.push_back(last_scope);
-			return last_scope;
-		}
-
-		void open_scope(string x){
-			table_element * scope = lookup(x, -1);
-			if (scope == NULL){
-				cout << x << " esta variable no esta definida." << endl;
-				stack.push_back(-1);
-			}
-			else if (scope->child_scope == -1){
-				cout << x << " no es de un tipo complejo." << endl;
-				error_sintactico = 1;
-				stack.push_back(scope->child_scope);
-			} else {	
-				stack.push_back(scope->child_scope);
-			}
-		}
-
-		void exit_scope(){
-			if (!stack.empty())
-			stack.pop_back();
-		}
-
-		table_element * lookup(string x, int scope){
-
-			if ( tabla.find(x) == tabla.end() ) {
-				return NULL;
-			} 
-
-			for (deque<table_element>::iterator vit = tabla[x].begin() ; vit != tabla[x].end(); vit++){
-				if ( scope == -1  && (find(stack.begin(), stack.end(), vit->scope) != stack.end() ) ){
-					return &(*vit);
-				} 
-				if ( scope != -1 && vit->scope == scope ){
-					return &(*vit);
+symbol* sym_table::lookup(string id) {
+	symbol* pervasive = NULL;
+	symbol* best = NULL;
+	for(auto e : table[id]) {
+		if(e->id == id) {
+			if(e->scope == 0) pervasive = e;
+			else {
+				for(vector<int>::reverse_iterator s = scope_stack.rbegin(); s < scope_stack.rend(); s++) {
+					if(*s == e->scope) {
+						best = e;
+						break;
+					}
+					else if(best && *s == best->scope) {
+						break;
+					}
 				}
 			}
-			return NULL;
 		}
+	}
+	if(best) return best;
+	return pervasive;
+}
 
-		table_element * lookup_top(string x){
+void sym_table::print() {
+	cout << "\n***Printing Symbol Table***" << endl;
 
-			if ( tabla.find(x) == tabla.end() ) {
-				return NULL;
-			} 
-
-			for (deque<table_element>::iterator vit = tabla[x].begin() ; vit != tabla[x].end(); vit++){
-				if (vit->scope == stack.back()){
-					return &(*vit);
-				}
-			}
-			return NULL;
+	for (auto i : table) {
+		cout << "Identifier: " << i.first << " \n => [";
+		for (auto qi : i.second) {
+			qi->print();
+			if (qi != i.second.back()) 
+				cout << ", ";
 		}
-
-		bool insert(string identifier){
-			if(tabla.find(identifier) == tabla.end()){
-                tabla[identifier].push_front(table_element(identifier, stack.back()));
-                return true;
-			}
-			if (lookup(identifier, stack.back()) != NULL){
-				cout << "La variable " << identifier << " ya esta declarada en el scope: " << stack.back() << endl;
-				return false;	
-			}
-		}
-
-		void print(){		
-			cout << endl << "Imprimiendo tabla de simbolos:" << endl; 
-		    for(map<string, deque<table_element> >::iterator it = tabla.begin(); it != tabla.end(); ++it) {
-		    	cout << "Variable: " << it->first << " [";
-		    	for (deque<table_element>::iterator vit = it->second.begin() ; vit != it->second.end(); ++vit) {
-					vit->print();
-					if (vit+1 != it->second.end())
-						cout << ", ";
-		    	}
-			    cout << "]" << endl;
-		    }
-		}
-};
+		cout << "]" << endl;
+	}
+}

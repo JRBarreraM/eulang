@@ -56,13 +56,15 @@ std::string t_names [] =
         "LESS",
         "GEQ",
         "LEQ",
+        "BREAK",
+        "CONTINUE",
         "NUMBER",
         "DECIMAL",
         "ID",
         "CHAR",
         "STRING",
         "TRUE",
-        "FALSE"
+        "FALSE",
     };
 
 void show_queue(std::queue<std::string> gq)

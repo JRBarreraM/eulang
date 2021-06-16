@@ -6,6 +6,7 @@
     #include <regex>
     #include "token.hpp"
     #include "ast.hpp"
+    #include "symbol_table.hpp"
     using namespace std;
 
     extern int yylex(void);
@@ -15,14 +16,16 @@
 
     // queues for tokens and errors
     extern queue<string> errors;
+    queue<string> st_errors;
     vector<Token*> detectedTokens;
     
     void yyerror(const char *s);
+    void redeclared_variable_error(string id);
     
     regex extension("(.*)\\.eula");
 
     NodeStart* root_ast;
-    bool error_sintactico = 0;
+    sym_table st;
 %}
 
 %union 
@@ -104,14 +107,16 @@
 %token <str> LESS 52
 %token <str> GEQ 53
 %token <str> LEQ 54
+%token <str> BREAK 55
+%token <str> CONTINUE 56
 
-%token <integer>  NUMBER 55
-%token <flot>     DECIMAL 56
-%token <str>      ID 57
-%token <ch>       CHAR 58
-%token <str>      STRING 59
-%token <boolean>  TRUE 60
-%token <boolean>  FALSE 61
+%token <integer>  NUMBER 57
+%token <flot>     DECIMAL 58
+%token <str>      ID 59
+%token <ch>       CHAR 60
+%token <str>      STRING 61
+%token <boolean>  TRUE 62
+%token <boolean>  FALSE 63
 
 %type <ast>     Inst InstAux Action FuncActions FuncInst FuncBody 
 %type <ast>     ProcInst ProcBody Definition Type TypeAux TypePrimitive TypeComposite
@@ -121,6 +126,7 @@
 %type <ast>     Selection OptElif OptElse For Range While
 %type <boolean> OptRoof
 %type <ns>      Start
+%type <str>     IdFor 
 
 // Precedence
 
@@ -159,8 +165,8 @@ Action:         VarInst SEMICOLON               { $$ = $1; }
                 | For                           { $$ = $1; }
                 | VENGEANCE LValue SEMICOLON    { $$ = new NodeVengeance($2); }
                 | PRINT OPAR Exp CPAR SEMICOLON { $$ = new NodePrint($3); }
-                | CONTINUE SEMICOLON            { $$ = new NodeContinue($3); }
-                | BREAK SEMICOLON               { $$ = new NodeBreak($3); }
+                | CONTINUE SEMICOLON            { $$ = new NodeContinue(); }
+                | BREAK SEMICOLON               { $$ = new NodeBreak(); }
                 | ID PLUSPLUS SEMICOLON         { $$ = new NodeAssign(new NodeIDLValue($1), new NodeBinaryOperator(new NodeIDLValue($1), "+", new NodeINT(1) )); }
                 | ID MINUSMINUS SEMICOLON       { $$ = new NodeAssign(new NodeIDLValue($1), new NodeBinaryOperator(new NodeIDLValue($1), "-", new NodeINT(1) )); }
 ;
@@ -210,7 +216,8 @@ TypeComposite:  TSTR                               { $$ = new NodeTypePrimitiveD
 VarInst:        VarDef                    { $$ = $1; }
 	            | Assign                  { $$ = $1; }
 ;
-VarDef:         LET Type ID OptAssign     { $$ = new NodeVarDef($2, $3, $4); }
+VarDef:         LET Type ID OptAssign     { $$ = new NodeVarDef($2, $3, $4);
+                                            if(!st.insert($3)) redeclared_variable_error($3);}
 ;
 OptAssign:      ASSIGN RValue             { $$ = $2; }
 	            | /* lambda */            { $$ = NULL; }
@@ -265,15 +272,21 @@ LValue:         ID                             { $$ = new NodeIDLValue($1); }
 ;
 
 /* Funciones */
-DefFunc:        FUNC ID OPAR FuncPar CPAR DTWODOTS TypePrimitive OCURLYBRACKET FuncBody CCURLYBRACKET { $$ = new NodeFuncDef($2, $4, $9, $7); }
+DefFunc:        Func ID OPAR FuncPar CPAR DTWODOTS TypePrimitive OCURLYBRACKET FuncBody CCURLYBRACKET { $$ = new NodeFuncDef($2, $4, $9, $7);
+                                                                                                        st.exit_scope();
+                                                                                                        if(!st.insert($2)) redeclared_variable_error($2);}
+;
+Func:           FUNC    { st.new_scope(); }
 ;
 
 FuncPar:        ParList                 { $$ = $1; }
                 | /* lambda */          { $$ = NULL; }
 ;
 
-ParList:        ParList COMMA Type OptRoof ID   { $$ = new NodeRoutineArgsDef($3, $4, $5, $1); }
-                | Type OptRoof ID               { $$ = new NodeRoutineArgsDef($1, $2, $3); }
+ParList:        ParList COMMA Type OptRoof ID   { $$ = new NodeRoutineArgsDef($3, $4, $5, $1); 
+                                                  if(!st.insert($5)) redeclared_variable_error($5);}
+                | Type OptRoof ID               { $$ = new NodeRoutineArgsDef($1, $2, $3); 
+                                                  if(!st.insert($3)) redeclared_variable_error($3);}
 ;
 
 OptRoof:        ROOF                    { $$ = true; }
@@ -292,7 +305,11 @@ ArgList:    RValue                              { $$ = new NodeCallFunctionArgs(
 ;
 
 /* Procedimientos */
-DefProc:        PROC ID OPAR FuncPar CPAR OCURLYBRACKET ProcBody CCURLYBRACKET { $$ = new NodeProcDef($2, $4, $7); }
+DefProc:        Proc ID OPAR FuncPar CPAR OCURLYBRACKET ProcBody CCURLYBRACKET { $$ = new NodeProcDef($2, $4, $7);
+                                                                                 st.exit_scope();
+                                                                                 if(!st.insert($2)) redeclared_variable_error($2); }
+;
+Proc:           PROC    { st.new_scope(); }
 ;
 
 /* Arreglos */
@@ -308,33 +325,57 @@ ArrElems:       ArrElems COMMA RValue    { $$ = new NodeArrayElems($3, $1); }
 ;
 
 /* Union */
-DefUnion:       TUNION ID OCURLYBRACKET UnionBody CCURLYBRACKET   { $$ = new NodeUnionDef($2, $4); }
+DefUnion:       Union ID OCURLYBRACKET UnionBody CCURLYBRACKET   { $$ = new NodeUnionDef($2, $4);
+                                                                    st.exit_scope();
+                                                                    if(!st.insert($2)) redeclared_variable_error($2); }
 ;
 
-UnionBody:      LET Type ID SEMICOLON               { $$ = new NodeUnionFields($3, $2); }
-		|       UnionBody LET Type ID SEMICOLON     { $$ = new NodeUnionFields($4, $3, $1); }
+Union:          TUNION      { st.new_scope(); }
+;
+
+UnionBody:      LET Type ID SEMICOLON                 { $$ = new NodeUnionFields($3, $2); 
+                                                        if(!st.insert($3)) redeclared_variable_error($3); }
+		        | UnionBody LET Type ID SEMICOLON     { $$ = new NodeUnionFields($4, $3, $1); 
+                                                        if(!st.insert($4)) redeclared_variable_error($4); }
 ;
 
 /* Struct */
-DefStruct:      TSTRUCT ID OCURLYBRACKET StructBody CCURLYBRACKET { $$ = new NodeStructDef($2, $4); }
+DefStruct:      Struct ID OCURLYBRACKET StructBody CCURLYBRACKET { $$ = new NodeStructDef($2, $4); 
+                                                                    st.exit_scope();
+                                                                    if(!st.insert($2)) redeclared_variable_error($2); }
+;
+Struct:         TSTRUCT     { st.new_scope(); }
 ;
 
-StructBody:     VarDef SEMICOLON             { $$ = new NodeStructFields($1); }
-		|       StructBody VarDef SEMICOLON  { $$ = new NodeStructFields($2, $1); }
+StructBody:     VarDef SEMICOLON                { $$ = new NodeStructFields($1); }
+		        | StructBody VarDef SEMICOLON   { $$ = new NodeStructFields($2, $1); }
 ;
 
 /* Condicionales */
-Selection:    IF OPAR Exp CPAR OCURLYBRACKET Inst CCURLYBRACKET OptElif OptElse { $$ = new NodeConditional($3, $6, $8, $9); }
+Selection:      If OPAR Exp CPAR OCURLYBRACKET Inst CCURLYBRACKET OptElif OptElse { $$ = new NodeConditional($3, $6, $8, $9); st.exit_scope(); }
 ;
-OptElif:           ELIF OPAR Exp CPAR OCURLYBRACKET Inst CCURLYBRACKET OptElif  { $$ = new NodeElif($3, $6, $8); }
+If:             IF      { st.new_scope(); }
+;
+
+OptElif:        Elif OPAR Exp CPAR OCURLYBRACKET Inst CCURLYBRACKET OptElif     { $$ = new NodeElif($3, $6, $8); st.exit_scope(); }
                 | /* lambda */                                                  { $$ = NULL; }
 ;
-OptElse:        ELSE OCURLYBRACKET Inst CCURLYBRACKET   { $$ = new NodeElse($3); }
-		|       /* lambda */                            { $$ = NULL; }
+Elif:           ELIF    { st.new_scope(); }
+;
+
+OptElse:        Else OCURLYBRACKET Inst CCURLYBRACKET   { $$ = new NodeElse($3); st.exit_scope(); }
+		        |       /* lambda */                    { $$ = NULL; }
+;
+Else:           ELSE    { st.new_scope(); }
 ;
 
 /* For Loop */
-For:            FOR OPAR ID IN Range CPAR OCURLYBRACKET Inst CCURLYBRACKET    { $$ = new NodeFor($3, $5, $8); }
+For:            LoopFor OPAR IdFor IN Range CPAR OCURLYBRACKET Inst CCURLYBRACKET    { $$ = new NodeFor($3, $5, $8); st.exit_scope(); }
+;
+LoopFor:        FOR     { st.new_scope(); }
+;
+IdFor:          ID      { $$ = $1; 
+                          if(!st.insert($1)) redeclared_variable_error($1);}
 ;
 
 Range:          Exp         { $$ = $1; }
@@ -342,7 +383,9 @@ Range:          Exp         { $$ = $1; }
 ;
 
 /* While Loop */
-While:          WHILE OPAR Exp CPAR OCURLYBRACKET Inst CCURLYBRACKET    { $$ = new NodeWhile($3, $6); }
+While:          LoopWhile OPAR Exp CPAR OCURLYBRACKET Inst CCURLYBRACKET    { $$ = new NodeWhile($3, $6); st.exit_scope(); }
+;
+LoopWhile:      WHILE   { st.new_scope(); }
 ;
 %%
 
@@ -351,10 +394,18 @@ void yyerror(const char *s)
   fprintf(stderr, "Error: %s, unexpected token %s at line %d, column %d\n", s, yytext,yylineno, yycolumn);
 }
 
+void redeclared_variable_error(string id)
+{
+    string e = "Error: redeclared variable " + id + " at line " + to_string(yylineno) + ", column " + to_string(yycolumn) + "\n";
+    st_errors.push(e);
+}
+
+
 int main(int argc, char **argv)
 {
     bool lex = false;
     bool ast = false;
+    bool stp = false;
     int flags = 0;
     for(int i = 1; i < argc -1; ++i) {
         if(string(argv[i]) == "-lex") {
@@ -364,6 +415,10 @@ int main(int argc, char **argv)
 
         else if(string(argv[i]) == "-ast") {
             ast = true;
+            flags++;
+        }
+        else if(string(argv[i]) == "-st") {
+            stp = true;
             flags++;
         }
 
@@ -442,14 +497,19 @@ int main(int argc, char **argv)
         // start parsing
         yyparse();
 
-        if(ast){
-            cout<<"ast here"<<endl;
+        if(st_errors.empty()) {
+            if(ast){
+                root_ast->print(0);
+            }
+            if(stp){
+                st.print();
+            }
         }
+        else show_queue(st_errors);
 
     } else {
         show_queue(errors);
     }
 
-    root_ast->print(0);
     return 0;
 }
