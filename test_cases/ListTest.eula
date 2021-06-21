@@ -27,8 +27,7 @@ func deQueue(list[int] ^s1, list[int] ^s2)::int {
     }
 
     // Return top of s1
-    let int x = s1[-1];
-    pop(s1);
+    let int x = pop(s1);
     return x;
 }
 
