@@ -1,1 +1,1 @@
-let int i = 1;
+let int i;

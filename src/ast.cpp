@@ -93,7 +93,8 @@ void NodeVarDef::print(int ident) {
         cout << "  ";
     cout << "LET " << id << endl;
     type->print(ident+1);
-    rvalue->print(ident+1);
+    if(rvalue)
+        rvalue->print(ident+1);
 }
 
 void NodeIDLValue::print(int ident){
