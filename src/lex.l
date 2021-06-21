@@ -38,6 +38,7 @@ number  [0-9]+
 letter  [a-zA-Z]
 
 %%
+(\/\/)(.*?)                  { yycolumn = 1; /* ignorar comentarios */ }
 (\/\/)(.*?)([\n\r])          { yycolumn = 1; /* ignorar comentarios */ }
 \/\*[^(\$\})]*\*\/           { /* ignorar comentarios */ }
 [ \t]                        { /* ignorar espacios en blanco */ }
@@ -116,7 +117,7 @@ letter  [a-zA-Z]
 
 {number}                     { yylval.integer = atoi(yytext); return NUMBER; }
 {number}\.{number}           { yylval.flot = stof(yytext); return DECIMAL; } 
-{letter}({letter}|_|\-|{number})* { return ID; }
+{letter}({letter}|_|{number})* { return ID; }
 
 \n                           { yycolumn = 1; /* ignorar */ }
 .                            { temp = strdup(yytext); 

@@ -10,6 +10,28 @@ void symbol::print(){
 
 /* Symbol Table */
 sym_table::sym_table() {
+	scope_stack.push_back(0);
+	insert("itochar");
+	insert("ctoint");
+	insert("itostr");
+	insert("floor");
+	insert("ceil");
+	insert("decimal");
+	insert("round");
+	insert("ftostr");
+	insert("lena");
+	insert("lens");
+	insert("split");
+	insert("stoint");
+	insert("stofloat");
+	insert("lenl");
+	insert("pop");
+	insert("push");
+	insert("insert");
+	insert("find");
+	insert("reverse");
+	insert("remove");
+	insert("ltostr");
 	last_scope = 1;
 	scope_stack.push_back(last_scope);
 }
@@ -38,10 +60,10 @@ bool sym_table::insert(string id) {
 	if(table.find(id) == table.end())
 		table[id];
 
+	// Check if variable is already defined in scope
 	if(check_redef(id))
 		return false;
 	
-	// Check if variable is already defined in scope
 	
 	table[id].push_front(new symbol(id, "Here goes category", scope_stack.back()));
 	return true;

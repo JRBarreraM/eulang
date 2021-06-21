@@ -27,9 +27,9 @@ class sym_table {
 		map<string, deque<symbol*> > table;
 		vector<int> scope_stack;
 		bool check_redef(string id);
-		symbol* lookup(string id);
 
 	public:
+		symbol* lookup(string id);
 		sym_table();
 		int new_scope();
 		void exit_scope();

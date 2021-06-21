@@ -21,6 +21,7 @@
     
     void yyerror(const char *s);
     void redeclared_variable_error(string id);
+    void check_id_exists(string id);
     
     regex extension("(.*)\\.eula");
 
@@ -118,15 +119,15 @@
 %token <boolean>  TRUE 62
 %token <boolean>  FALSE 63
 
-%type <ast>     Inst InstAux Action FuncActions FuncInst FuncBody 
-%type <ast>     ProcInst ProcBody Definition Type TypeAux TypePrimitive TypeComposite
+%type <ast>     Inst InstAux Action FuncBody 
+%type <ast>     Definition Type TypeAux TypePrimitive TypeComposite
 %type <ast>     VarInst VarDef OptAssign Assign RValue InputType OptExp Exp
 %type <ast>     LValue DefFunc FuncPar ParList CallFunc ArgElems ArgList
 %type <ast>     DefProc Array ArrExp ArrElems DefUnion UnionBody DefStruct StructBody
 %type <ast>     Selection OptElif OptElse For Range While
 %type <boolean> OptRoof
 %type <ns>      Start
-%type <str>     IdFor 
+%type <str>     IdFor Func Proc
 
 // Precedence
 
@@ -167,22 +168,13 @@ Action:         VarInst SEMICOLON               { $$ = $1; }
                 | PRINT OPAR Exp CPAR SEMICOLON { $$ = new NodePrint($3); }
                 | CONTINUE SEMICOLON            { $$ = new NodeContinue(); }
                 | BREAK SEMICOLON               { $$ = new NodeBreak(); }
-                | ID PLUSPLUS SEMICOLON         { $$ = new NodeAssign(new NodeIDLValue($1), new NodeBinaryOperator(new NodeIDLValue($1), "+", new NodeINT(1) )); }
-                | ID MINUSMINUS SEMICOLON       { $$ = new NodeAssign(new NodeIDLValue($1), new NodeBinaryOperator(new NodeIDLValue($1), "-", new NodeINT(1) )); }
-;
-FuncActions:    Action                          { $$ = $1; }
+                | ID PLUSPLUS SEMICOLON         { check_id_exists($1);
+                                                  $$ = new NodeAssign(new NodeIDLValue($1), new NodeBinaryOperator(new NodeIDLValue($1), "+", new NodeINT(1) )); }
+                | ID MINUSMINUS SEMICOLON       { check_id_exists($1);
+                                                   $$ = new NodeAssign(new NodeIDLValue($1), new NodeBinaryOperator(new NodeIDLValue($1), "-", new NodeINT(1) )); }
                 | RETURN Exp SEMICOLON          { $$ = new NodeReturn($2); }
-;
-FuncInst:       FuncInst FuncActions        { $$ = new NodeInst($2, $1); }
-                | FuncActions               { $$ = new NodeInst($1); }
-;
-ProcInst:       ProcInst Action         { $$ = new NodeInst($2, $1); }
-                | Action                { $$ = new NodeInst($1); }
-;
-ProcBody:       ProcInst            { $$ = $1; }
-	            | /* lambda */      { $$ = NULL; }
 ; 
-FuncBody:       FuncInst            { $$ = $1; }
+FuncBody:       Inst                { $$ = $1; }
 	            | /* lambda */      { $$ = NULL; }
 ;
 Definition:     DefUnion          { $$ = $1; }
@@ -193,6 +185,7 @@ Definition:     DefUnion          { $$ = $1; }
 
 /* Tipos */
 Type:           TypeAux                                 { $$ = $1; }
+                | TLIST OBRACKET Type CBRACKET          { $$ = new NodeTypeList($3); }
                 | TypeAux OBRACKET Exp CBRACKET         { $$ = new NodeTypeArrayDef($1, $3); }
                 | TypeAux TILDE  	                    { $$ = new NodeTypePointerDef($1); }
 ;
@@ -208,7 +201,6 @@ TypePrimitive:  TBOOL                              { $$ = new NodeTypePrimitiveD
 ;
                 
 TypeComposite:  TSTR                               { $$ = new NodeTypePrimitiveDef($1); }
-                | TLIST                            { $$ = new NodeTypePrimitiveDef($1); }
                 | ID                               { $$ = new NodeTypePrimitiveDef($1); }
 ;
 
@@ -265,18 +257,21 @@ Exp:            NUMBER               { $$ = new NodeINT($1); }
 ;
 
 /* Left Values */
-LValue:         ID                             { $$ = new NodeIDLValue($1); }
+LValue:         ID                             { check_id_exists($1);
+                                                $$ = new NodeIDLValue($1); }
                 | LValue OBRACKET Exp CBRACKET { $$ = new NodeArrayLValue($1, $3); }
-                | LValue DOT ID                { $$ = new NodeLValueDot($1, $3); }
+                | LValue DOT ID                { check_id_exists($3);
+                                                  $$ = new NodeLValueDot($1, $3); }
                 | DEREF LValue                 { $$ = new NodePointerLValue($2); }
 ;
 
 /* Funciones */
-DefFunc:        Func ID OPAR FuncPar CPAR DTWODOTS TypePrimitive OCURLYBRACKET FuncBody CCURLYBRACKET { $$ = new NodeFuncDef($2, $4, $9, $7);
-                                                                                                        st.exit_scope();
-                                                                                                        if(!st.insert($2)) redeclared_variable_error($2);}
+DefFunc:        Func OPAR FuncPar CPAR DTWODOTS TypePrimitive OCURLYBRACKET FuncBody CCURLYBRACKET { $$ = new NodeFuncDef($1, $3, $8, $6);
+                                                                                                        st.exit_scope(); }
 ;
-Func:           FUNC    { st.new_scope(); }
+Func:           FUNC ID   { if(!st.insert($2)) redeclared_variable_error($2);
+                            st.new_scope();
+                            $$ = $2; }
 ;
 
 FuncPar:        ParList                 { $$ = $1; }
@@ -293,7 +288,8 @@ OptRoof:        ROOF                    { $$ = true; }
                 | /* Lambda */          { $$ = false; }
 ;
 
-CallFunc:       ID OPAR ArgElems CPAR { $$ = new NodeCallFunction($1, $3); }
+CallFunc:       ID OPAR ArgElems CPAR { check_id_exists($1);
+                                        $$ = new NodeCallFunction($1, $3); }
 ;
 
 ArgElems:   ArgList                             { $$ = $1; }
@@ -305,11 +301,12 @@ ArgList:    RValue                              { $$ = new NodeCallFunctionArgs(
 ;
 
 /* Procedimientos */
-DefProc:        Proc ID OPAR FuncPar CPAR OCURLYBRACKET ProcBody CCURLYBRACKET { $$ = new NodeProcDef($2, $4, $7);
-                                                                                 st.exit_scope();
-                                                                                 if(!st.insert($2)) redeclared_variable_error($2); }
+DefProc:        Proc OPAR FuncPar CPAR OCURLYBRACKET FuncBody CCURLYBRACKET { $$ = new NodeProcDef($1, $3, $6);
+                                                                                 st.exit_scope(); }
 ;
-Proc:           PROC    { st.new_scope(); }
+Proc:           PROC ID   { if(!st.insert($2)) redeclared_variable_error($2);
+                            st.new_scope();
+                            $$ = $2; }
 ;
 
 /* Arreglos */
@@ -391,7 +388,7 @@ LoopWhile:      WHILE   { st.new_scope(); }
 
 void yyerror(const char *s)
 {
-  fprintf(stderr, "Error: %s, unexpected token %s at line %d, column %d\n", s, yytext,yylineno, yycolumn);
+    fprintf(stderr, "Error: %s, unexpected token %s at line %d, column %d\n", s, yytext,yylineno, yycolumn);
 }
 
 void redeclared_variable_error(string id)
@@ -400,6 +397,14 @@ void redeclared_variable_error(string id)
     st_errors.push(e);
 }
 
+void check_id_exists(string id)
+{
+    if(st.lookup(id) == NULL)
+    {
+        string e = "Error: " + id + " not declared. At line " + to_string(yylineno) + ", column " + to_string(yycolumn) + "\n";
+        st_errors.push(e);
+    }
+}
 
 int main(int argc, char **argv)
 {
@@ -482,34 +487,27 @@ int main(int argc, char **argv)
     fclose(yyin);
     yyin = fopen(argv[argc-1], "r");
 
-    // if there are no errors, apply parsing
-    if (errors.empty()) {
-        // Print tokens
-        if (lex){
-            print_tokens(detectedTokens);
-            return 0;
-        }
-        
-        // reset lines and columns
-        yylineno = 1;
-        yycolumn = 1;
-
-        // start parsing
-        yyparse();
-
-        if(st_errors.empty()) {
-            if(ast){
-                root_ast->print(0);
-            }
-            if(stp){
-                st.print();
-            }
-        }
-        else show_queue(st_errors);
-
-    } else {
+    // If error on lexer, show them
+    if(!errors.empty()){
         show_queue(errors);
     }
+
+    // Print tokens
+    if (lex){
+        print_tokens(detectedTokens);
+    }
+    
+    // reset lines and columns
+    yylineno = 1;
+    yycolumn = 1;
+
+    // start parsing
+    yyparse();
+
+    if(ast) root_ast->print(0);
+    if(stp) st.print();
+
+    if(!st_errors.empty()) show_queue(st_errors);
 
     return 0;
 }

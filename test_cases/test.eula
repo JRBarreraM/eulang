@@ -3,6 +3,7 @@ proc count_and_print(int counter, str hola)
     counter++;
     print(hola);
     print(itostr(counter));
+    count_and_print(counter, "Hello");
 }
 /* 
 
@@ -26,3 +27,5 @@ let int a = 1;
 // Chequeamos cual es el valor final
 print(final);
 print(a + counter);
+
+// Hola beunas

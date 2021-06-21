@@ -81,6 +81,13 @@ void NodeTypeArrayDef::print(int ident) {
     size->print(ident+1);
 }
 
+void NodeTypeList::print(int ident) {
+    for(int i = 0; i < ident; i++)
+        cout << "  ";
+    cout << "LIST" << endl;
+    type->print(ident+1);
+}
+
 void NodeVarDef::print(int ident) {
     for(int i = 0; i < ident; i++)
         cout << "  ";

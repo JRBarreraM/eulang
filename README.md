@@ -331,7 +331,7 @@ Operadores binarios que retornan un bool.
 
 	array[-1] == array[array.len -1]; //azucar sintactica para indexar el arreglo como si fuese circular.  
 
-	array[0...1] == array[0]; //retorna un el conjunto de elementos del elementos indexados en el rango especificado. El rango es inclusivo del lado izquierdo pero no del lado derecho.  
+	array[0...1] == array[0]; //retorna un el conjunto de elementos indexados en el rango especificado. El rango es inclusivo del lado izquierdo pero no del lado derecho.  
 
 	let int[2] array= [10,11];
 	atostr(array) -> [ '[' , '1' , '0' , ',' , '1' , '1' , ']' ]; //"["+ 10.tostring() + "," + 11.tostring() + "]"

@@ -1,0 +1,30 @@
+// Fibonacci iterativo
+let int n;
+let int t1 = 0;
+let int t2 = 1;
+let int nextTerm = t1 + t2;
+
+n = input("Enter the number of terms: ")::int;
+print("Fibonacci Series: " + itostr(t1) + ", " + itostr(t2));
+
+for (i in [1...n]) {
+    print(itostr(nextTerm) + ", ");
+    t1 = t2;
+    t2 = nextTerm;
+    nextTerm = t1 + t2;
+}
+
+// Fibonacci recursivo
+
+func fib(int n)::int {
+    if (n < 2) {
+        return n;
+    }
+    else{
+        // fn = fn-1 + fn-2
+        return fib(n-1) + fib(n-2);
+    }
+}
+
+let int fibex = fib(n);
+print("Fibonacci of " + itostr(n) + " " + itostr(fibex) );

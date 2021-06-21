@@ -1,0 +1,8 @@
+struct mage {
+    let float hp;
+    let float mana;
+    let float magic_power;
+}
+
+let mage rivero;
+print(ftostr(rivero.physical_strength));

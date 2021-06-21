@@ -157,6 +157,17 @@ class NodeTypeArrayDef : public node {
     void print(int ident);
 };
 
+class NodeTypeList : public node {
+  protected:
+    node *type;
+
+  public:
+    NodeTypeList(node *type)
+    : type(type) {};
+
+    void print(int ident);
+};
+
 /* Representation of: Type ID = RValue. */
 class NodeVarDef : public node {
   protected:

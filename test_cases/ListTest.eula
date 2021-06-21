@@ -1,0 +1,41 @@
+let list[int] s1;
+let list[int] s2;
+
+// Enqueue an item to the queue
+proc enQueue(list[int] ^s1, list[int] ^s2, int x) {
+    // Move all elements from s1 to s2
+    while (lenl(s1) != 0) {
+        push(s2, s1[-1]);
+        pop(s1);
+    }
+
+    // Push item into s1
+    push(s1, x);
+
+    // Push everything back to s1
+    while(lenl(s2) != 0){
+        push(s1, s2[-1]);
+        pop(s2);
+    }
+}
+
+// Dequeue an item from the queue
+func deQueue(list[int] ^s1, list[int] ^s2)::int {
+    // if first stack is empty
+    if(lenl(s1) == 0) {
+        print("Q is Empty");
+    }
+
+    // Return top of s1
+    let int x = s1[-1];
+    pop(s1);
+    return x;
+}
+
+enQueue(s1, s2, 1);
+enQueue(s1, s2, 2);
+enQueue(s1, s2, 3);
+
+print(deQueue(s1, s2));
+print(deQueue(s1, s2));
+print(deQueue(s1, s2));

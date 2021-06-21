@@ -1,0 +1,38 @@
+/* This is a point in 2d */
+struct point {
+    let int x;
+    let int y;
+}
+
+/* This is a line in 2d space */
+struct side {
+    let point[2] points;
+}
+
+/* Square represented by 4 lines */
+struct square {
+    let side[4] sides;
+}
+
+// Calculate the length of a side
+func length(side s)::float {
+    let int x = /* This is a multiline comment */ (s.points[1].x - s.points[0].x) ** 2;
+    let int y = (s.points[1].y - s.points[0].y) ** 2;
+    return (x + y) ** 0.5;
+}
+
+// Calculate the area of a square
+func area(square sq)::float {
+    return length(sq.sides[0]) ** 2;
+}
+
+let square my_square;
+
+for(i in [0...4])
+{
+    my_square.sides[i].x = input("Please enter X coordinate of side " + itostr(i + 1))::int;
+    my_square.sides[i].y = input("Please enter Y coordinate of side " + itostr(i + 1))::int;
+}
+
+let float square_area = area(my_square);
+print("The area is " + ftostr(square_area));
