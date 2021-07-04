@@ -21,7 +21,7 @@
     
     void yyerror(const char *s);
     void redeclared_variable_error(string id);
-    void check_id_exists(string id);
+    bool check_id_exists(string id);
     
     regex extension("(.*)\\.eula");
 
@@ -122,7 +122,7 @@
 %type <ast>     Inst InstAux Action FuncBody 
 %type <ast>     Definition Type TypeAux TypePrimitive TypeComposite
 %type <ast>     VarInst VarDef OptAssign Assign RValue InputType OptExp Exp
-%type <ast>     LValue DefFunc FuncPar ParList CallFunc ArgElems ArgList
+%type <ast>     LValue DefFunc FuncPar ParList CallFunc ArgElems ArgList FuncSignature
 %type <ast>     DefProc Array ArrExp ArrElems DefUnion UnionBody DefStruct StructBody
 %type <ast>     Selection OptElif OptElse For Range While
 %type <boolean> OptRoof
@@ -145,7 +145,7 @@
 %nonassoc   ID
 %left       OPAR
 
-%expect 1
+%expect 0
 /* Gramatica del lenguaje */
 %%
 
@@ -168,10 +168,26 @@ Action:         VarInst SEMICOLON               { $$ = $1; }
                 | PRINT OPAR Exp CPAR SEMICOLON { $$ = new NodePrint($3); }
                 | CONTINUE SEMICOLON            { $$ = new NodeContinue(); }
                 | BREAK SEMICOLON               { $$ = new NodeBreak(); }
-                | ID PLUSPLUS SEMICOLON         { check_id_exists($1);
-                                                  $$ = new NodeAssign(new NodeIDLValue($1), new NodeBinaryOperator(new NodeIDLValue($1), "+", new NodeINT(1) )); }
-                | ID MINUSMINUS SEMICOLON       { check_id_exists($1);
-                                                   $$ = new NodeAssign(new NodeIDLValue($1), new NodeBinaryOperator(new NodeIDLValue($1), "-", new NodeINT(1) )); }
+                | ID PLUSPLUS SEMICOLON         { t_type* tipo;
+                                                  if (check_id_exists($1)){
+                                                    string s = st.lookup($1)->type->name;
+                                                    if (s == "int") tipo = new t_type_int();
+                                                    else if (s == "float") tipo = new t_type_float();
+                                                    else tipo = new t_type_error();
+                                                  }
+                                                  else tipo = new t_type_error();
+                                                  $$ = new NodeAssign(new NodeIDLValue($1), new NodeBinaryOperator(new NodeIDLValue($1), "+", new NodeINT(1), tipo));
+                                                }   
+                | ID MINUSMINUS SEMICOLON       { t_type* tipo;
+                                                  if (check_id_exists($1)){
+                                                    string s = st.lookup($1)->type->name;
+                                                    if (s == "int") tipo = new t_type_int();
+                                                    else if (s == "float") tipo = new t_type_float();
+                                                    else tipo = new t_type_error();
+                                                  }
+                                                  else tipo = new t_type_error();
+                                                  $$ = new NodeAssign(new NodeIDLValue($1), new NodeBinaryOperator(new NodeIDLValue($1), "-", new NodeINT(1), tipo));
+                                                }
                 | RETURN Exp SEMICOLON          { $$ = new NodeReturn($2); }
 ; 
 FuncBody:       Inst                { $$ = $1; }
@@ -181,27 +197,28 @@ Definition:     DefUnion          { $$ = $1; }
                 | DefStruct       { $$ = $1; }
                 | DefProc         { $$ = $1; }
                 | DefFunc         { $$ = $1; }
+                | FuncSignature   { $$ = $1; }
 ;
 
 /* Tipos */
 Type:           TypeAux                                 { $$ = $1; }
-                | TLIST OBRACKET Type CBRACKET          { $$ = new NodeTypeList($3); }
-                | TypeAux OBRACKET Exp CBRACKET         { $$ = new NodeTypeArrayDef($1, $3); }
-                | TypeAux TILDE  	                    { $$ = new NodeTypePointerDef($1); }
+                | TLIST OBRACKET Type CBRACKET          { $$ = new NodeTypeList($3);} /*Pendiente Recursion*/
+                | TypeAux OBRACKET Exp CBRACKET         { $$ = new NodeTypeArrayDef($1, $3); } /*Pendiente Recursion*/
+                | TypeAux TILDE  	                    { $$ = new NodeTypePointerDef($1); } /*Pendiente Recursion*/
 ;
 
 TypeAux:        TypePrimitive                      { $$ = $1; }
                 | TypeComposite                    { $$ = $1; }
 ;
 
-TypePrimitive:  TBOOL                              { $$ = new NodeTypePrimitiveDef($1); }
-                | TCHAR                            { $$ = new NodeTypePrimitiveDef($1); }
-                | TINT                             { $$ = new NodeTypePrimitiveDef($1); }
-                | TFLOAT                           { $$ = new NodeTypePrimitiveDef($1); }
+TypePrimitive:  TBOOL                              { $$ = new NodeTypePrimitiveDef(new t_type_bool()); }
+                | TCHAR                            { $$ = new NodeTypePrimitiveDef(new t_type_char()); }
+                | TINT                             { $$ = new NodeTypePrimitiveDef(new t_type_int()); }
+                | TFLOAT                           { $$ = new NodeTypePrimitiveDef(new t_type_float()); }
 ;
                 
-TypeComposite:  TSTR                               { $$ = new NodeTypePrimitiveDef($1); }
-                | ID                               { $$ = new NodeTypePrimitiveDef($1); }
+TypeComposite:  TSTR                               { $$ = new NodeTypePrimitiveDef(new t_type_str()); }
+                | ID                               { $$ = new NodeTypePrimitiveDef(new t_type($1)); }
 ;
 
 /* Definiciones */
@@ -209,7 +226,7 @@ VarInst:        VarDef                    { $$ = $1; }
 	            | Assign                  { $$ = $1; }
 ;
 VarDef:         LET Type ID OptAssign     { $$ = new NodeVarDef($2, $3, $4);
-                                            if(!st.insert($3)) redeclared_variable_error($3);}
+                                            if(!st.insert($3,"var",$2->return_type(), $4 != NULL )) redeclared_variable_error($3);}
 ;
 OptAssign:      ASSIGN RValue             { $$ = $2; }
 	            | /* lambda */            { $$ = NULL; }
@@ -222,7 +239,7 @@ RValue:         Exp                                             { $$ = $1; }
                 | INPUT OPAR OptExp CPAR DTWODOTS InputType     { $$ = new NodeInput($6, $3); }
 ;
 InputType:      TypePrimitive   { $$ = $1; }
-                | TSTR          { $$ = new NodeTypePrimitiveDef($1); }
+                | TSTR          { $$ = new NodeTypePrimitiveDef(new t_type_str()); }
 ;
 OptExp:         Exp                  { $$ = $1; }
                 | /* Lambda */       { $$ = NULL; }
@@ -253,7 +270,7 @@ Exp:            NUMBER               { $$ = new NodeINT($1); }
                 | Exp GEQ Exp        { $$ = new NodeBinaryOperator($1, $2, $3);; }
                 | Exp LEQ Exp        { $$ = new NodeBinaryOperator($1, $2, $3);; }
                 | NOT Exp            { $$ = new NodeUnaryOperator($1, $2); }
-                | Exp OBRACKET Exp SOFORTH Exp CBRACKET  { $$ = new NodeSubArray($1, $3, $5); }
+                | LValue OBRACKET Exp SOFORTH Exp CBRACKET  { $$ = new NodeSubArray($1, $3, $5); }
 ;
 
 /* Left Values */
@@ -266,12 +283,14 @@ LValue:         ID                             { check_id_exists($1);
 ;
 
 /* Funciones */
-DefFunc:        Func OPAR FuncPar CPAR DTWODOTS TypePrimitive OCURLYBRACKET FuncBody CCURLYBRACKET { $$ = new NodeFuncDef($1, $3, $8, $6);
+FuncSignature:  TypePrimitive FUNC ID OPAR FuncPar CPAR SEMICOLON { if(!st.insert($3,"func", $1->return_type(),false)) redeclared_variable_error($3); $$ = new NodeFuncSignature($3,$5,$1); }
+;
+DefFunc:        Func OPAR FuncPar CPAR  OCURLYBRACKET FuncBody CCURLYBRACKET { $$ = new NodeFuncDef($1, $3, $6);
                                                                                                         st.exit_scope(); }
 ;
-Func:           FUNC ID   { if(!st.insert($2)) redeclared_variable_error($2);
+Func:           TypePrimitive FUNC ID   { if(!st.insert($3,"func",$1->return_type(),true)) redeclared_variable_error($3);
                             st.new_scope();
-                            $$ = $2; }
+                            $$ = $3; }
 ;
 
 FuncPar:        ParList                 { $$ = $1; }
@@ -279,9 +298,9 @@ FuncPar:        ParList                 { $$ = $1; }
 ;
 
 ParList:        ParList COMMA Type OptRoof ID   { $$ = new NodeRoutineArgsDef($3, $4, $5, $1); 
-                                                  if(!st.insert($5)) redeclared_variable_error($5);}
+                                                  if(!st.insert($5, "var", $3->return_type(), true)) redeclared_variable_error($5);}
                 | Type OptRoof ID               { $$ = new NodeRoutineArgsDef($1, $2, $3); 
-                                                  if(!st.insert($3)) redeclared_variable_error($3);}
+                                                  if(!st.insert($3, "var", $1->return_type(), true)) redeclared_variable_error($3);}
 ;
 
 OptRoof:        ROOF                    { $$ = true; }
@@ -304,7 +323,7 @@ ArgList:    RValue                              { $$ = new NodeCallFunctionArgs(
 DefProc:        Proc OPAR FuncPar CPAR OCURLYBRACKET FuncBody CCURLYBRACKET { $$ = new NodeProcDef($1, $3, $6);
                                                                                  st.exit_scope(); }
 ;
-Proc:           PROC ID   { if(!st.insert($2)) redeclared_variable_error($2);
+Proc:           PROC ID   { if(!st.insert($2, "proc", new t_type_no_type(), true)) redeclared_variable_error($2);
                             st.new_scope();
                             $$ = $2; }
 ;
@@ -324,22 +343,22 @@ ArrElems:       ArrElems COMMA RValue    { $$ = new NodeArrayElems($3, $1); }
 /* Union */
 DefUnion:       Union ID OCURLYBRACKET UnionBody CCURLYBRACKET   { $$ = new NodeUnionDef($2, $4);
                                                                     st.exit_scope();
-                                                                    if(!st.insert($2)) redeclared_variable_error($2); }
+                                                                    if(!st.insert($2, "union", new t_type_union(), true)) redeclared_variable_error($2); }
 ;
 
 Union:          TUNION      { st.new_scope(); }
 ;
 
 UnionBody:      LET Type ID SEMICOLON                 { $$ = new NodeUnionFields($3, $2); 
-                                                        if(!st.insert($3)) redeclared_variable_error($3); }
+                                                        if(!st.insert($3, "var", $2->return_type(), false)) redeclared_variable_error($3); }
 		        | UnionBody LET Type ID SEMICOLON     { $$ = new NodeUnionFields($4, $3, $1); 
-                                                        if(!st.insert($4)) redeclared_variable_error($4); }
+                                                        if(!st.insert($4, "var", $3->return_type(), false)) redeclared_variable_error($4); }
 ;
 
 /* Struct */
 DefStruct:      Struct ID OCURLYBRACKET StructBody CCURLYBRACKET { $$ = new NodeStructDef($2, $4); 
                                                                     st.exit_scope();
-                                                                    if(!st.insert($2)) redeclared_variable_error($2); }
+                                                                    if(!st.insert($2, "struct", new t_type_struct(), true)) redeclared_variable_error($2); }
 ;
 Struct:         TSTRUCT     { st.new_scope(); }
 ;
@@ -372,7 +391,7 @@ For:            LoopFor OPAR IdFor IN Range CPAR OCURLYBRACKET Inst CCURLYBRACKE
 LoopFor:        FOR     { st.new_scope(); }
 ;
 IdFor:          ID      { $$ = $1; 
-                          if(!st.insert($1)) redeclared_variable_error($1);}
+                          if(!st.insert($1, "var", new t_type_int(),true)) redeclared_variable_error($1);}
 ;
 
 Range:          Exp         { $$ = $1; }
@@ -397,13 +416,15 @@ void redeclared_variable_error(string id)
     st_errors.push(e);
 }
 
-void check_id_exists(string id)
+bool check_id_exists(string id)
 {
     if(st.lookup(id) == NULL)
     {
         string e = "Error: " + id + " not declared. At line " + to_string(yylineno) + ", column " + to_string(yycolumn) + "\n";
         st_errors.push(e);
+        return false;
     }
+    return true;
 }
 
 int main(int argc, char **argv)

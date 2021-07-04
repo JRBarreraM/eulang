@@ -5,7 +5,7 @@ CXX     = g++
 COPT    = -g
 
 default:
-	($(PARSER) $(POPT) parser.y && \
+	($(PARSER) $(POPT) parser.y -Wother && \
 	$(LEXER) lex.l && \
 	$(CXX) $(COPT) symbol_table.cpp ast.cpp parser.tab.c lex.yy.c token.cpp utilities.cpp -o eula.out) || \
 	(echo -e "\n\e[1;31mError. \e[0mCompilation termined." && exit 1)

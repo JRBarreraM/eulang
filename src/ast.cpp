@@ -1,10 +1,17 @@
 #include "ast.hpp"
+#include "symbol_table.hpp"
 using namespace std;
+
+extern sym_table st;
 
 void NodeBOOL::print(int ident) {
     for(int i = 0; i < ident; i++)
         cout << "  ";
     cout << value << endl;
+}
+
+t_type* NodeBOOL::return_type() {
+    return new t_type_bool();
 }
 
 void NodeCHAR::print(int ident) {
@@ -13,10 +20,18 @@ void NodeCHAR::print(int ident) {
     cout << value << endl;
 }
 
+t_type* NodeCHAR::return_type() {
+    return new t_type_char();
+}
+
 void NodeINT::print(int ident) {
     for(int i = 0; i < ident; i++)
         cout << "  ";
     cout << value << endl;
+}
+
+t_type* NodeINT::return_type() {
+    return new t_type_int();
 }
 
 void NodeFLOAT::print(int ident) {
@@ -25,10 +40,18 @@ void NodeFLOAT::print(int ident) {
     cout << value << endl;
 }
 
+t_type* NodeFLOAT::return_type() {
+    return new t_type_float();
+}
+
 void NodeSTRING::print(int ident) {
     for(int i = 0; i < ident; i++)
         cout << "  ";
     cout << value << endl;
+}
+
+t_type* NodeSTRING::return_type() {
+    return new t_type_str();
 }
 
 void NodeBinaryOperator::print(int ident) {
@@ -39,6 +62,10 @@ void NodeBinaryOperator::print(int ident) {
     right->print(ident+1);
 }
 
+t_type* NodeBinaryOperator::return_type() {
+    return type;
+}
+
 void NodeUnaryOperator::print(int ident) {
     for(int i = 0; i < ident; i++)
         cout << "  ";
@@ -46,11 +73,19 @@ void NodeUnaryOperator::print(int ident) {
     exp->print(ident+1);
 }
 
+t_type* NodeUnaryOperator::return_type() {
+    return type;
+}
+
 void NodeNew::print(int ident){
     for(int i = 0; i < ident; i++)
         cout << "  ";
     cout << "new" << endl;
     type->print(ident+1);
+}
+
+t_type* NodeNew::return_type() {
+    return type->return_type();
 }
 
 void NodeVengeance::print(int ident){
@@ -63,7 +98,11 @@ void NodeVengeance::print(int ident){
 void NodeTypePrimitiveDef::print(int ident) {
     for(int i = 0; i < ident; i++)
         cout << "  ";
-    cout << type << endl;
+    cout << type->name << endl;
+}
+
+t_type* NodeTypePrimitiveDef::return_type() {
+    return type;
 }
 
 void NodeTypePointerDef::print(int ident) {
@@ -71,6 +110,10 @@ void NodeTypePointerDef::print(int ident) {
         cout << "  ";
     cout << "~" << endl;
     type->print(ident+1);
+}
+
+t_type* NodeTypePointerDef::return_type() {
+    return type->return_type();
 }
 
 void NodeTypeArrayDef::print(int ident) {
@@ -81,11 +124,19 @@ void NodeTypeArrayDef::print(int ident) {
     size->print(ident+1);
 }
 
+t_type* NodeTypeArrayDef::return_type() {
+    return type->return_type();
+}
+
 void NodeTypeList::print(int ident) {
     for(int i = 0; i < ident; i++)
         cout << "  ";
     cout << "LIST" << endl;
     type->print(ident+1);
+}
+
+t_type* NodeTypeList::return_type() {
+    return type->return_type();
 }
 
 void NodeVarDef::print(int ident) {
@@ -97,10 +148,19 @@ void NodeVarDef::print(int ident) {
         rvalue->print(ident+1);
 }
 
+t_type* NodeVarDef::return_type() {
+    return type->return_type();
+}
+
 void NodeIDLValue::print(int ident){
     for(int i = 0; i < ident; i++)
         cout << "  ";
     cout << id << endl;
+}
+
+t_type* NodeIDLValue::return_type() {
+    symbol* lookUp = st.lookup(id);
+    return lookUp ? lookUp->type : new t_type_no_type();
 }
 
 void NodeLValueDot::print(int ident){
@@ -110,11 +170,19 @@ void NodeLValueDot::print(int ident){
     lvalue->print(ident+1);
 }
 
+t_type* NodeLValueDot::return_type() {
+    return new t_type_no_type();
+}
+
 void NodePointerLValue::print(int ident){
     for(int i = 0; i < ident; i++)
         cout << "  ";
     cout << "&" << endl;
     lvalue->print(ident+1);
+}
+
+t_type* NodePointerLValue::return_type() {
+    return lvalue->return_type();
 }
 
 void NodeArrayLValue::print(int ident){
@@ -123,6 +191,10 @@ void NodeArrayLValue::print(int ident){
     cout << "EVALARRAY" << endl;
     lvalue->print(ident+1);
     index->print(ident+1);
+}
+
+t_type* NodeArrayLValue::return_type() {
+    return lvalue->return_type();
 }
 
 void NodeSubArray::print(int ident){
@@ -134,11 +206,19 @@ void NodeSubArray::print(int ident){
     indexEnd->print(ident+1);
 }
 
+t_type* NodeSubArray::return_type() {
+    return lvalue->return_type();
+}
+
 void NodeArray::print(int ident){
     for(int i = 0; i < ident; i++)
         cout << "  ";
     cout << "ARRAYLITERAL" << endl;
     elems->print(ident+1);
+}
+
+t_type* NodeArray::return_type() {
+    return new t_type_array();
 }
 
 void NodeArrayElems::print(int ident){
@@ -147,6 +227,10 @@ void NodeArrayElems::print(int ident){
     if(head)
         head->print(ident);
     rvalue->print(ident);
+}
+
+t_type* NodeArrayElems::return_type() {
+    return rvalue->return_type();
 }
 
 void NodeCallFunction::print(int ident){
@@ -240,13 +324,21 @@ void NodeFor::print(int ident) {
     body->print(ident+1);
 }
 
-void NodeFuncDef::print(int ident) {
+void NodeFuncSignature::print(int ident) {
     for(int i = 0; i < ident; i++)
         cout << "  ";
     cout << "FUNC " << id << endl;
     if(args)
         args->print(ident+1);
     type->print(ident+1);
+}
+
+void NodeFuncDef::print(int ident) {
+    for(int i = 0; i < ident; i++)
+        cout << "  ";
+    cout << "FUNC " << id << endl;
+    if(args)
+        args->print(ident+1);
     body->print(ident+1);
 }
 

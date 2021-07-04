@@ -377,9 +377,7 @@ Operadores binarios que retornan un bool.
 
 	<nombre_lista>[-1] == <nombre_lista>[lenl(<nombre_lista>) - 1]; //analogo al array. 
 
-	<nombre_lista>[0...1] <==> <nombre_lista>[0]; //analogo al array.  
-
-	pop(<nombre_lista>) //elimina el ultimo elemento de la lista, y lo retorna.  
+	<nombre_lista>[0...1] <==> <nombre_lista>[0]; //analogo al array.
 
 	pop(<nombre_lista>, <entero>) //elimina el elemento en el indice indicado, y lo retorna.  
 
@@ -389,7 +387,7 @@ Operadores binarios que retornan un bool.
 
 	find(<nombre_lista>, <elemento>) -> int  //busca un elemento en la lista y si se encuentra retorna el indice del primer elemento que encuentre. Si no error.
 
-	reverse(<nombre_lista>)  //invierte la lista
+	reversed(<nombre_lista>)  //devuelve la lista invertida
 
 	remove(<nombre_lista>, <elemento>) //elimina todas las ocurrencias de un elemento de la lista.  
 

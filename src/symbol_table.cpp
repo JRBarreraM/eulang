@@ -11,27 +11,27 @@ void symbol::print(){
 /* Symbol Table */
 sym_table::sym_table() {
 	scope_stack.push_back(0);
-	insert("itochar");
-	insert("ctoint");
-	insert("itostr");
-	insert("floor");
-	insert("ceil");
-	insert("decimal");
-	insert("round");
-	insert("ftostr");
-	insert("lena");
-	insert("lens");
-	insert("split");
-	insert("stoint");
-	insert("stofloat");
-	insert("lenl");
-	insert("pop");
-	insert("push");
-	insert("insert");
-	insert("find");
-	insert("reverse");
-	insert("remove");
-	insert("ltostr");
+	insert("itochar", "func", new t_type_char(), true);
+	insert("ctoint", "func", new t_type_int(), true);
+	insert("itostr", "func", new t_type_str(), true);
+	insert("floor", "func", new t_type_int(), true);
+	insert("ceil", "func", new t_type_int(), true);
+	insert("decimal", "func", new t_type_float(), true);
+	insert("round", "func", new t_type_int(), true);
+	insert("ftostr", "func", new t_type_str(), true);
+	insert("lena", "func", new t_type_int(), true);
+	insert("lens", "func", new t_type_int(), true);
+	insert("split", "func", new t_type_array(), true);
+	insert("stoint", "func", new t_type_int(), true);
+	insert("stofloat", "func", new t_type_float(), true);
+	insert("lenl", "func", new t_type_int(), true);
+	insert("pop", "func", new t_type_no_type(), true);//TODO
+	insert("push", "proc", new t_type_no_type(), true);
+	insert("insert", "proc", new t_type_no_type(), true);
+	insert("find", "func", new t_type_int(), true);
+	insert("reversed", "func", new t_type_list(), true);
+	insert("remove", "proc", new t_type_no_type(), true);
+	insert("ltostr", "func", new t_type_str(), true);
 	last_scope = 1;
 	scope_stack.push_back(last_scope);
 }
@@ -47,25 +47,29 @@ void sym_table::exit_scope() {
 		scope_stack.pop_back();
 }
 
-bool sym_table::check_redef(string id) {
-	symbol *p = lookup(id);
-	if(p && p->scope == scope_stack.back()) {
-		return true;
+symbol* sym_table::check_redef(string id) {
+	symbol *s = lookup(id);
+	if(s && s->scope == scope_stack.back()) {
+		return s;
 	}
-	return false;
+	return NULL;
 }
 
-bool sym_table::insert(string id) {
+bool sym_table::insert(string id, string category, t_type* t, bool assigned) {
 	// First check if id is in last scope
 	if(table.find(id) == table.end())
 		table[id];
 
 	// Check if variable is already defined in scope
-	if(check_redef(id))
+	symbol* s = check_redef(id);
+	if(s && s->assigned){
 		return false;
-	
-	
-	table[id].push_front(new symbol(id, "Here goes category", scope_stack.back()));
+	}
+	else if(s && !(s->assigned) && assigned){
+		s->assigned = true;
+		return true;
+	}
+	table[id].push_front(new symbol(id, category, scope_stack.back(), t, assigned));
 	return true;
 }
 

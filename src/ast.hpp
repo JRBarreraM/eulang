@@ -1,13 +1,14 @@
 #include <string>
 #include <iostream>
-
+#include "types.hpp"
 using namespace std;
 
 class node {
   public:
     node() {};
     // Print a node representation.
-    virtual void print(int ident) { };
+    virtual void print(int ident) {};
+    virtual t_type* return_type() { return new t_type_no_type();};
 };
 
 /* */
@@ -20,6 +21,7 @@ class NodeBOOL : public node {
       : value(value) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 class NodeCHAR : public node {
@@ -31,6 +33,7 @@ class NodeCHAR : public node {
       : value(value) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 class NodeINT : public node {
@@ -42,6 +45,7 @@ class NodeINT : public node {
       : value(value) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 class NodeFLOAT : public node {
@@ -53,6 +57,7 @@ class NodeFLOAT : public node {
     : value(value) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 class NodeSTRING : public node {
@@ -64,6 +69,7 @@ class NodeSTRING : public node {
     : value(value) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* EXPRESSIONS  */
@@ -73,12 +79,14 @@ class NodeBinaryOperator : public node {
     node* left;
     string op;
     node* right;
+    t_type* type;
 
   public:
-    NodeBinaryOperator(node *left, string op, node *right)
-    : left(left), op(op), right(right) {};
+    NodeBinaryOperator(node* left, string op, node* right, t_type* type)
+    : left(left), op(op), right(right), type(type) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* Representation of: unary operations. */
@@ -86,12 +94,14 @@ class NodeUnaryOperator : public node {
   protected:
     string op;
     node *exp;
+    t_type* type;
 
   public:
-    NodeUnaryOperator(string op, node *exp)
-    : op(op), exp(exp) {};
+    NodeUnaryOperator(string op, node *exp, t_type* type)
+    : op(op), exp(exp), type(type) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* HEAP NODES  */
@@ -105,6 +115,7 @@ class NodeNew : public node {
     : type(type) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* Representation of: vengeance Type. */
@@ -117,19 +128,21 @@ class NodeVengeance : public node {
     : lvalue(lvalue) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* TYPEDEF NODES  */
 /* Class for defined types. */
 class NodeTypePrimitiveDef : public node {
   protected:
-    string type;
+    t_type* type;
 
   public:
-    NodeTypePrimitiveDef(string type)
-    : type(type) {};
+    NodeTypePrimitiveDef(t_type* t)
+    : type(t) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* Representation of: Type ~. */
@@ -142,6 +155,7 @@ class NodeTypePointerDef : public node {
     : type(type) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* Representation of: Type [ Exp ]. */
@@ -155,6 +169,7 @@ class NodeTypeArrayDef : public node {
     : type(type), size(size) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 class NodeTypeList : public node {
@@ -166,6 +181,7 @@ class NodeTypeList : public node {
     : type(type) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* Representation of: Type ID = RValue. */
@@ -180,6 +196,7 @@ class NodeVarDef : public node {
     : type(type), id(id), rvalue(rvalue) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* LVALUE NODES  */
@@ -193,6 +210,7 @@ class NodeIDLValue : public node {
     : id(id) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* Representation of: LValue . ID. */
@@ -206,6 +224,7 @@ class NodeLValueDot : public node {
     : lvalue(lvalue), id(id) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* Representation of: &LValue. */
@@ -218,6 +237,7 @@ class NodePointerLValue : public node {
     : lvalue(lvalue) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* Representation of: LValue [ Exp ]. */
@@ -231,6 +251,7 @@ class NodeArrayLValue : public node {
     : lvalue(lvalue), index(index) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* Representation of: LValue [ Exp ... Exp ]. */
@@ -245,6 +266,7 @@ class NodeSubArray : public node {
     : lvalue(lvalue), indexStart(indexStart), indexEnd(indexEnd) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* ARRAY NODES  */
@@ -258,6 +280,7 @@ class NodeArray : public node {
     : elems(elems) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* Representation of: RValue , ArrElems. */
@@ -271,6 +294,7 @@ class NodeArrayElems : public node {
       : rvalue(rvalue), head(head) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 class NodeArrayRange : public node {
@@ -283,6 +307,7 @@ class NodeArrayRange : public node {
       : min(min), max(max) {}
     
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* FUNCTION CALL NODES */
@@ -297,6 +322,7 @@ class NodeCallFunction : public node {
     : id(id), args(args) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* Representation of: RValue , FuncArgs. */
@@ -310,6 +336,7 @@ class NodeCallFunctionArgs : public node {
     : rvalue(rvalue), head(head) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* UNION DEF NODES */
@@ -324,6 +351,7 @@ class NodeUnionDef : public node {
     : id(id), fields(fields) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* Representation of: UnionBody LET Type ID SEMICOLON  */
@@ -338,6 +366,7 @@ class NodeUnionFields : public node {
     : id(id), type(type), head(head) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* STRUCT DEF NODES */
@@ -352,6 +381,7 @@ class NodeStructDef : public node {
     : id(id), fields(fields) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* Representation of: StructBody VarDef;  */
@@ -365,6 +395,7 @@ class NodeStructFields : public node {
     : fields(fields), head(head) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* CONDITIONAL DEF NODES */
@@ -381,6 +412,7 @@ class NodeConditional : public node {
     : cond(cond), body(body), elifs(elifs), else_def(else_def) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* Representation of: ELIF OPAR Exp CPAR OCURLYBRACKET Inst CCURLYBRACKET. */
@@ -395,6 +427,7 @@ class NodeElif : public node {
     : cond(cond), body(body), elifs(elifs) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* Representation of: ELSE OCURLYBRACKET Inst CCURLYBRACKET. */
@@ -407,6 +440,7 @@ class NodeElse : public node {
     : body(body) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* LOOP NODES  */
@@ -421,6 +455,7 @@ class NodeWhile : public node {
     : cond(cond), body(body) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* Representation of for blocks. */
@@ -435,22 +470,38 @@ class NodeFor : public node {
     : iter(iter), range(range), body(body) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* PROC and FUNC DEF NODES  */
 /* Representation of proc and func definition. */
+
+class NodeFuncSignature : public node {
+  protected:
+    string id;
+    node *args;
+    node* type;
+
+  public:
+    NodeFuncSignature(string id, node *args, node* type)
+    : id(id), args(args), type(type) {};
+
+    void print(int ident);
+    t_type* return_type() override;
+};
+
 class NodeFuncDef : public node {
   protected:
     string id;
     node *args;
     node *body;
-    node* type;
 
   public:
-    NodeFuncDef(string id, node *args, node *body, node* type)
-    : id(id), args(args), body(body), type(type) {};
+    NodeFuncDef(string id, node *args, node *body)
+    : id(id), args(args), body(body) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 class NodeReturn : public node {
@@ -462,14 +513,17 @@ class NodeReturn : public node {
       : exp(exp) {};
     
     void print(int ident);
+    t_type* return_type() override;
 };
 
 class NodeContinue : public node {    
     void print(int ident);
+    t_type* return_type() override;
 };
 
 class NodeBreak : public node {    
     void print(int ident);
+    t_type* return_type() override;
 };
 
 class NodeProcDef : public node {
@@ -483,6 +537,7 @@ class NodeProcDef : public node {
     : id(id), args(args), body(body) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 class NodeRoutineArgsDef : public node {
@@ -497,6 +552,7 @@ class NodeRoutineArgsDef : public node {
     : type(type), ref(ref), id(id), args(args) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* Representacion of: Inst InstAux */
@@ -510,6 +566,7 @@ class NodeInst : public node {
     : inst(inst), head(head) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* INSTRUCTION NODES  */
@@ -523,6 +580,7 @@ class NodeAssign : public node {
     : lvalue(lvalue), rvalue(rvalue) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 /* Root node. */
@@ -547,6 +605,7 @@ class NodePrint : public node {
     : exp(exp) {};
 
     void print(int ident);
+    t_type* return_type() override;
 };
 
 class NodeInput : public node {
@@ -559,4 +618,5 @@ class NodeInput : public node {
     : exp(exp), type(type){};
 
     void print(int ident);
+    t_type* return_type() override;
 };
