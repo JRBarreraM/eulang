@@ -6,86 +6,86 @@ extern int yycolumn;
 
 t_type* arithmeticBinOPType(string left, string right){
 
-    if(left == "error" || right == "error") return new t_type_error();
+    if(left == "error" || right == "error") return t_type_error::instance();
 
-    if(left == "str" && right == "str") return new t_type_str();
+    if(left == "str" && right == "str") return t_type_str::instance();
 
     // cout << "arithmeticBin: ";
     else if (left == "float"){
         if (right == "int" || right == "float"){
             // cout << "float" << endl;
-            return new t_type_float();
+            return t_type_float::instance();
         }
         else{
             // cout << "error" << endl;
-            return new t_type_error();
+            return t_type_error::instance();
         }
     }
     else if(left == "int"){
         if (right == "float"){
             // cout << "float" << endl;
-            return new t_type_float();
+            return t_type_float::instance();
         }
         else if(right == "int"){
             // cout << "int" << endl;
-            return new t_type_int();
+            return t_type_int::instance();
         }
         else {
             // cout << "error" << endl;
             push_type_error("operate", left, right);
-            return new t_type_error();
+            return t_type_error::instance();
         }
     }
     else{
         // cout << "error" << endl;
         push_type_error("operate", left, right);
-        return new t_type_error();
+        return t_type_error::instance();
     }
 }
 
 t_type* arithmeticUnOPType(string left){
-    if(left == "error") return new t_type_error();
-    else if (left == "float") return new t_type_float();
-    else if(left == "int") return new t_type_int();
+    if(left == "error") return t_type_error::instance();
+    else if (left == "float") return t_type_float::instance();
+    else if(left == "int") return t_type_int::instance();
     else{
         push_type_error("operate", left);
-        return new t_type_error();
+        return t_type_error::instance();
     }
 }
 
 t_type* booleanBinOPType(string left, string right){
-    if(left == "error" || right == "error") return new t_type_error();
-    else if (left == "bool" && right == "bool") return new t_type_bool();
+    if(left == "error" || right == "error") return t_type_error::instance();
+    else if (left == "bool" && right == "bool") return t_type_bool::instance();
     else{
         push_type_error("operate", left, right);
-        return new t_type_error();
+        return t_type_error::instance();
     }
 }
 
 t_type* equalsType(string left, string right){
-    if(left == "error" || right == "error") return new t_type_error();
-    else if (left == right) return new t_type_bool();
+    if(left == "error" || right == "error") return t_type_error::instance();
+    else if (left == right) return t_type_bool::instance();
     else{
         push_type_error("compare", left, right);
-        return new t_type_error();
+        return t_type_error::instance();
     }
 }
 
 t_type* comparisonBinOPType(string left, string right){
-    if(left == "error" || right == "error") return new t_type_error();
-    else if (left == right && (left == "int" || left == "float" || left == "bool")) return new t_type_bool();
+    if(left == "error" || right == "error") return t_type_error::instance();
+    else if (left == right && (left == "int" || left == "float" || left == "bool")) return t_type_bool::instance();
     else{
         push_type_error("compare", left, right);
-        return new t_type_error();
+        return t_type_error::instance();
     }
 }
 
 t_type* booleanUnOPType(string left){
-    if(left == "error") return new t_type_error();
-    else if (left == "bool") return new t_type_bool();
+    if(left == "error") return t_type_error::instance();
+    else if (left == "bool") return t_type_bool::instance();
     else{
         push_type_error("operate", left);
-        return new t_type_error();
+        return t_type_error::instance();
     }
 }
 

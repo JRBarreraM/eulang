@@ -11,7 +11,7 @@ void NodeBOOL::print(int ident) {
 }
 
 t_type* NodeBOOL::return_type() {
-    return new t_type_bool();
+    return t_type_bool::instance();
 }
 
 void NodeCHAR::print(int ident) {
@@ -21,7 +21,7 @@ void NodeCHAR::print(int ident) {
 }
 
 t_type* NodeCHAR::return_type() {
-    return new t_type_char();
+    return t_type_char::instance();
 }
 
 void NodeINT::print(int ident) {
@@ -31,7 +31,7 @@ void NodeINT::print(int ident) {
 }
 
 t_type* NodeINT::return_type() {
-    return new t_type_int();
+    return t_type_int::instance();
 }
 
 void NodeFLOAT::print(int ident) {
@@ -41,7 +41,7 @@ void NodeFLOAT::print(int ident) {
 }
 
 t_type* NodeFLOAT::return_type() {
-    return new t_type_float();
+    return t_type_float::instance();
 }
 
 void NodeSTRING::print(int ident) {
@@ -51,7 +51,7 @@ void NodeSTRING::print(int ident) {
 }
 
 t_type* NodeSTRING::return_type() {
-    return new t_type_str();
+    return t_type_str::instance();
 }
 
 void NodeBinaryOperator::print(int ident) {
@@ -96,7 +96,7 @@ void NodeVengeance::print(int ident){
 }
 
 t_type* NodeVengeance::return_type() {
-    return new t_type_no_type();
+    return t_type_no_type::instance();
 }
 
 void NodeTypePrimitiveDef::print(int ident) {
@@ -164,7 +164,7 @@ void NodeIDLValue::print(int ident){
 
 t_type* NodeIDLValue::return_type() {
     symbol* lookUp = st.lookup(id);
-    return lookUp ? lookUp->type : new t_type_no_type();
+    return lookUp ? lookUp->type : t_type_no_type::instance();
 }
 
 void NodeLValueDot::print(int ident){
@@ -175,7 +175,7 @@ void NodeLValueDot::print(int ident){
 }
 
 t_type* NodeLValueDot::return_type() {
-    return new t_type_no_type();
+    return t_type_no_type::instance();
 }
 
 void NodePointerLValue::print(int ident){
@@ -222,7 +222,7 @@ void NodeArray::print(int ident){
 }
 
 t_type* NodeArray::return_type() {
-    return new t_type_array();
+    return t_type_array::instance();
 }
 
 void NodeArrayElems::print(int ident){
@@ -245,7 +245,7 @@ void NodeCallFunction::print(int ident){
 }
 
 t_type* NodeCallFunction::return_type() {
-    return new t_type_no_type();
+    return t_type_no_type::instance();
 }
 
 void NodeCallFunctionArgs::print(int ident){
@@ -257,7 +257,7 @@ void NodeCallFunctionArgs::print(int ident){
 }
 
 t_type* NodeCallFunctionArgs::return_type() {
-    return new t_type_no_type();
+    return t_type_no_type::instance();
 }
 
 void NodeUnionDef::print(int ident){
@@ -268,7 +268,7 @@ void NodeUnionDef::print(int ident){
 }
 
 t_type* NodeUnionDef::return_type() {
-    return new t_type_no_type();
+    return t_type_no_type::instance();
 }
 
 void NodeUnionFields::print(int ident) {
@@ -281,7 +281,7 @@ void NodeUnionFields::print(int ident) {
 }
 
 t_type* NodeUnionFields::return_type() {
-    return new t_type_no_type();
+    return t_type_no_type::instance();
 }
 
 void NodeStructDef::print(int ident) {
@@ -292,7 +292,7 @@ void NodeStructDef::print(int ident) {
 }
 
 t_type* NodeStructDef::return_type() {
-    return new t_type_no_type();
+    return t_type_no_type::instance();
 }
 
 void NodeStructFields::print(int ident) {
@@ -304,7 +304,7 @@ void NodeStructFields::print(int ident) {
 }
 
 t_type* NodeStructFields::return_type() {
-    return new t_type_no_type();
+    return t_type_no_type::instance();
 }
 
 void NodeConditional::print(int ident){
@@ -320,7 +320,7 @@ void NodeConditional::print(int ident){
 }
 
 t_type* NodeConditional::return_type() {
-    return new t_type_no_type();
+    return t_type_no_type::instance();
 }
 
 void NodeElif::print(int ident) {
@@ -334,7 +334,7 @@ void NodeElif::print(int ident) {
 }
 
 t_type* NodeElif::return_type() {
-    return new t_type_no_type();
+    return t_type_no_type::instance();
 }
 
 void NodeElse::print(int ident) {
@@ -345,7 +345,7 @@ void NodeElse::print(int ident) {
 }
 
 t_type* NodeElse::return_type() {
-    return new t_type_no_type();
+    return t_type_no_type::instance();
 }
 
 void NodeWhile::print(int ident) {
@@ -357,7 +357,7 @@ void NodeWhile::print(int ident) {
 }
 
 t_type* NodeWhile::return_type() {
-    return new t_type_no_type();
+    return t_type_no_type::instance();
 }
 
 void NodeFor::print(int ident) {
@@ -369,7 +369,7 @@ void NodeFor::print(int ident) {
 }
 
 t_type* NodeFor::return_type() {
-    return new t_type_no_type();
+    return t_type_no_type::instance();
 }
 
 void NodeFuncSignature::print(int ident) {
@@ -382,7 +382,7 @@ void NodeFuncSignature::print(int ident) {
 }
 
 t_type* NodeFuncSignature::return_type() {
-    return new t_type_no_type();
+    return t_type_no_type::instance();
 }
 
 void NodeProcSignature::print(int ident) {
@@ -394,7 +394,7 @@ void NodeProcSignature::print(int ident) {
 }
 
 t_type* NodeProcSignature::return_type() {
-    return new t_type_no_type();
+    return t_type_no_type::instance();
 }
 
 void NodeFuncDef::print(int ident) {
@@ -407,7 +407,7 @@ void NodeFuncDef::print(int ident) {
 }
 
 t_type* NodeFuncDef::return_type() {
-    return new t_type_no_type();
+    return t_type_no_type::instance();
 }
 
 void NodeProcDef::print(int ident) {
@@ -420,7 +420,7 @@ void NodeProcDef::print(int ident) {
 }
 
 t_type* NodeProcDef::return_type() {
-    return new t_type_no_type();
+    return t_type_no_type::instance();
 }
 
 void NodeRoutineArgsDef::print(int ident) {
@@ -435,7 +435,7 @@ void NodeRoutineArgsDef::print(int ident) {
 }
 
 t_type* NodeRoutineArgsDef::return_type() {
-    return new t_type_no_type();
+    return t_type_no_type::instance();
 }
 
 void NodeInst::print(int ident){
@@ -448,7 +448,7 @@ void NodeInst::print(int ident){
 }
 
 t_type* NodeInst::return_type() {
-    return new t_type_no_type();
+    return t_type_no_type::instance();
 }
 
 void NodeBreak::print(int ident){
@@ -458,7 +458,7 @@ void NodeBreak::print(int ident){
 }
 
 t_type* NodeBreak::return_type() {
-    return new t_type_no_type();
+    return t_type_no_type::instance();
 }
 
 void NodeContinue::print(int ident){
@@ -468,7 +468,7 @@ void NodeContinue::print(int ident){
 }
 
 t_type* NodeContinue::return_type() {
-    return new t_type_no_type();
+    return t_type_no_type::instance();
 }
 
 void NodeAssign::print(int ident){
@@ -480,7 +480,7 @@ void NodeAssign::print(int ident){
 }
 
 t_type* NodeAssign::return_type() {
-    return new t_type_no_type();
+    return t_type_no_type::instance();
 }
 
 void NodeStart::print(int ident){
@@ -498,7 +498,7 @@ void NodePrint::print(int ident){
 }
 
 t_type* NodePrint::return_type() {
-    return new t_type_no_type();
+    return t_type_no_type::instance();
 }
 
 void NodeInput::print(int ident){
@@ -511,7 +511,7 @@ void NodeInput::print(int ident){
 }
 
 t_type* NodeInput::return_type() {
-    return new t_type_no_type();
+    return t_type_no_type::instance();
 }
 
 void NodeReturn::print(int ident){
@@ -522,7 +522,7 @@ void NodeReturn::print(int ident){
 }
 
 t_type* NodeReturn::return_type() {
-    return new t_type_no_type();
+    return t_type_no_type::instance();
 }
 
 void NodeArrayRange::print(int ident){
@@ -534,5 +534,5 @@ void NodeArrayRange::print(int ident){
 }
 
 t_type* NodeArrayRange::return_type() {
-    return new t_type_no_type();
+    return t_type_no_type::instance();
 }

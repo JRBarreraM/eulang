@@ -11,27 +11,27 @@ void symbol::print(){
 /* Symbol Table */
 sym_table::sym_table() {
 	scope_stack.push_back(0);
-	insert("itochar", "func", new t_type_char(), true);
-	insert("ctoint", "func", new t_type_int(), true);
-	insert("itostr", "func", new t_type_str(), true);
-	insert("floor", "func", new t_type_int(), true);
-	insert("ceil", "func", new t_type_int(), true);
-	insert("decimal", "func", new t_type_float(), true);
-	insert("round", "func", new t_type_int(), true);
-	insert("ftostr", "func", new t_type_str(), true);
-	insert("lena", "func", new t_type_int(), true);
-	insert("lens", "func", new t_type_int(), true);
-	insert("split", "func", new t_type_array(), true);
-	insert("stoint", "func", new t_type_int(), true);
-	insert("stofloat", "func", new t_type_float(), true);
-	insert("lenl", "func", new t_type_int(), true);
-	insert("pop", "func", new t_type_no_type(), true);//TODO
-	insert("push", "proc", new t_type_no_type(), true);
-	insert("insert", "proc", new t_type_no_type(), true);
-	insert("find", "func", new t_type_int(), true);
-	insert("reversed", "func", new t_type_list(), true);
-	insert("remove", "proc", new t_type_no_type(), true);
-	insert("ltostr", "func", new t_type_str(), true);
+	insert("itochar", "func", t_type_char::instance(), true);
+	insert("ctoint", "func", t_type_int::instance(), true);
+	insert("itostr", "func", t_type_str::instance(), true);
+	insert("floor", "func", t_type_int::instance(), true);
+	insert("ceil", "func", t_type_int::instance(), true);
+	insert("decimal", "func", t_type_float::instance(), true);
+	insert("round", "func", t_type_int::instance(), true);
+	insert("ftostr", "func", t_type_str::instance(), true);
+	insert("lena", "func", t_type_int::instance(), true);
+	insert("lens", "func", t_type_int::instance(), true);
+	insert("split", "func", t_type_array::instance(), true);
+	insert("stoint", "func", t_type_int::instance(), true);
+	insert("stofloat", "func", t_type_float::instance(), true);
+	insert("lenl", "func", t_type_int::instance(), true);
+	insert("pop", "func", t_type_no_type::instance(), true);//TODO
+	insert("push", "proc", t_type_no_type::instance(), true);
+	insert("insert", "proc", t_type_no_type::instance(), true);
+	insert("find", "func", t_type_int::instance(), true);
+	insert("reversed", "func", t_type_list::instance(), true);
+	insert("remove", "proc", t_type_no_type::instance(), true);
+	insert("ltostr", "func", t_type_str::instance(), true);
 	last_scope = 1;
 	scope_stack.push_back(last_scope);
 }

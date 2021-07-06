@@ -8,7 +8,7 @@ class node {
     node() {};
     // Print a node representation.
     virtual void print(int ident) {};
-    virtual t_type* return_type() { return new t_type_no_type();};
+    virtual t_type* return_type() { return t_type_no_type::instance();};
 };
 
 /* */

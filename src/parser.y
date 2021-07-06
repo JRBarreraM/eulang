@@ -172,7 +172,7 @@ Action:         VarInst SEMICOLON               { $$ = $1; }
                                                     string s = st.lookup($1)->type->name;
                                                     arithmeticUnOPType(s);
                                                   }
-                                                  else tipo = new t_type_error();
+                                                  else tipo = t_type_error::instance();
                                                   $$ = new NodeAssign(new NodeIDLValue($1), new NodeBinaryOperator(new NodeIDLValue($1), "+", new NodeINT(1), tipo));
                                                 }   
                 | ID MINUSMINUS SEMICOLON       { t_type* tipo;
@@ -180,7 +180,7 @@ Action:         VarInst SEMICOLON               { $$ = $1; }
                                                     string s = st.lookup($1)->type->name;
                                                     arithmeticUnOPType(s);
                                                   }
-                                                  else tipo = new t_type_error();
+                                                  else tipo = t_type_error::instance();
                                                   $$ = new NodeAssign(new NodeIDLValue($1), new NodeBinaryOperator(new NodeIDLValue($1), "-", new NodeINT(1), tipo));
                                                 }
                 | RETURN Exp SEMICOLON          { $$ = new NodeReturn($2); }
@@ -207,14 +207,14 @@ TypeAux:        TypePrimitive                      { $$ = $1; }
                 | TypeComposite                    { $$ = $1; }
 ;
 
-TypePrimitive:  TBOOL                              { $$ = new NodeTypePrimitiveDef(new t_type_bool()); }
-                | TCHAR                            { $$ = new NodeTypePrimitiveDef(new t_type_char()); }
-                | TINT                             { $$ = new NodeTypePrimitiveDef(new t_type_int()); }
-                | TFLOAT                           { $$ = new NodeTypePrimitiveDef(new t_type_float()); }
+TypePrimitive:  TBOOL                              { $$ = new NodeTypePrimitiveDef(t_type_bool::instance()); }
+                | TCHAR                            { $$ = new NodeTypePrimitiveDef(t_type_char::instance()); }
+                | TINT                             { $$ = new NodeTypePrimitiveDef(t_type_int::instance()); }
+                | TFLOAT                           { $$ = new NodeTypePrimitiveDef(t_type_float::instance()); }
 ;
                 
-TypeComposite:  TSTR                               { $$ = new NodeTypePrimitiveDef(new t_type_str()); }
-                | ID                               { $$ = new NodeTypePrimitiveDef(new t_type($1)); }
+TypeComposite:  TSTR                               { $$ = new NodeTypePrimitiveDef(t_type_str::instance()); }
+                | ID                               { $$ = new NodeTypePrimitiveDef(new t_type($1)); } //Check this
 ;
 
 /* Definiciones */
@@ -237,7 +237,7 @@ RValue:         Exp                                             { $$ = $1; }
                 | INPUT OPAR OptExp CPAR DTWODOTS InputType     { $$ = new NodeInput($6, $3); }
 ;
 InputType:      TypePrimitive   { $$ = $1; }
-                | TSTR          { $$ = new NodeTypePrimitiveDef(new t_type_str()); }
+                | TSTR          { $$ = new NodeTypePrimitiveDef(t_type_str::instance()); }
 ;
 OptExp:         Exp                  { $$ = $1; }
                 | /* Lambda */       { $$ = NULL; }
@@ -324,11 +324,11 @@ ArgList:    RValue                              { $$ = new NodeCallFunctionArgs(
 DefProc:        Proc OPAR FuncPar CPAR OCURLYBRACKET FuncBody CCURLYBRACKET { $$ = new NodeProcDef($1, $3, $6);
                                                                                  st.exit_scope(); }
 ;
-Proc:           PROC ID   { if(!st.insert($2, "proc", new t_type_no_type(), true)) redeclared_variable_error($2);
+Proc:           PROC ID   { if(!st.insert($2, "proc", t_type_no_type::instance(), true)) redeclared_variable_error($2);
                             st.new_scope();
                             $$ = $2; }
 ;
-ProcSignature:   MUL PROC ID OPAR FuncPar CPAR SEMICOLON { if(!st.insert($3,"func", new t_type_no_type(), false)) redeclared_variable_error($3); 
+ProcSignature:   MUL PROC ID OPAR FuncPar CPAR SEMICOLON { if(!st.insert($3,"func", t_type_no_type::instance(), false)) redeclared_variable_error($3); 
                                                            $$ = new NodeProcSignature($3, $5); }
 ;
 
@@ -347,7 +347,7 @@ ArrElems:       ArrElems COMMA RValue    { $$ = new NodeArrayElems($3, $1); }
 /* Union */
 DefUnion:       Union ID OCURLYBRACKET UnionBody CCURLYBRACKET   { $$ = new NodeUnionDef($2, $4);
                                                                     st.exit_scope();
-                                                                    if(!st.insert($2, "union", new t_type_union(), true)) redeclared_variable_error($2); }
+                                                                    if(!st.insert($2, "union", t_type_union::instance(), true)) redeclared_variable_error($2); }
 ;
 
 Union:          TUNION      { st.new_scope(); }
@@ -362,7 +362,7 @@ UnionBody:      LET Type ID SEMICOLON                 { $$ = new NodeUnionFields
 /* Struct */
 DefStruct:      Struct ID OCURLYBRACKET StructBody CCURLYBRACKET { $$ = new NodeStructDef($2, $4); 
                                                                     st.exit_scope();
-                                                                    if(!st.insert($2, "struct", new t_type_struct(), true)) redeclared_variable_error($2); }
+                                                                    if(!st.insert($2, "struct", t_type_struct::instance(), true)) redeclared_variable_error($2); }
 ;
 Struct:         TSTRUCT     { st.new_scope(); }
 ;
@@ -395,7 +395,7 @@ For:            LoopFor OPAR IdFor IN Range CPAR OCURLYBRACKET Inst CCURLYBRACKE
 LoopFor:        FOR     { st.new_scope(); }
 ;
 IdFor:          ID      { $$ = $1; 
-                          if(!st.insert($1, "var", new t_type_int(),true)) redeclared_variable_error($1);}
+                          if(!st.insert($1, "var", t_type_int::instance(),true)) redeclared_variable_error($1);}
 ;
 
 Range:          Exp         { $$ = $1; }
