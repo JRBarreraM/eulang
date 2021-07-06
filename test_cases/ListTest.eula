@@ -20,7 +20,7 @@ proc enQueue(list[int] ^s1, list[int] ^s2, int x) {
 }
 
 // Dequeue an item from the queue
-func deQueue(list[int] ^s1, list[int] ^s2)::int {
+int func deQueue(list[int] ^s1, list[int] ^s2) {
     // if first stack is empty
     if(lenl(s1) == 0) {
         print("Q is Empty");

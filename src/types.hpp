@@ -1,8 +1,13 @@
+#include <string>
+#include <queue>
 #pragma once
+
+using namespace std;
+
 class t_type {
 	public:
-		std::string name;
-		t_type(std::string name):
+		string name;
+		t_type(string name):
 			name(name) {}
 };
 class t_type_no_type : public t_type{
@@ -69,3 +74,12 @@ class t_type_union : public t_type{
 	public:
 		t_type_union():t_type("union"){}
 };
+
+t_type* arithmeticBinOPType(string left, string right);
+t_type* arithmeticUnOPType(string left);
+t_type* booleanBinOPType(string left, string right);
+t_type* booleanUnOPType(string left);
+t_type* comparisonBinOPType(string left, string right);
+t_type* equalsType(string left, string right);
+
+void push_type_error(string action, string typeA, string typeB="");

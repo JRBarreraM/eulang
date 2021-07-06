@@ -1,0 +1,12 @@
+let int n;
+let int t1 = 0;
+let float t2 = 1.0;
+let int nextTerm = t1 + t2;
+
+t1 = t2;
+t2 = nextTerm;
+nextTerm = t1 + t2;
+
+let str hola = "hola";
+let str mundo = "mundo";
+let str hola_mundo = hola + mundo;

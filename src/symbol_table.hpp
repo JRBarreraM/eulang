@@ -1,11 +1,8 @@
 #include <vector>
 #include <deque>
 #include <map>
-#include <string>
 #include <iostream>
 #include "types.hpp"
-
-using namespace std;
 
 /*  */
 class symbol {

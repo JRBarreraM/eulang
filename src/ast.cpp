@@ -95,6 +95,10 @@ void NodeVengeance::print(int ident){
     lvalue->print(ident+1);
 }
 
+t_type* NodeVengeance::return_type() {
+    return new t_type_no_type();
+}
+
 void NodeTypePrimitiveDef::print(int ident) {
     for(int i = 0; i < ident; i++)
         cout << "  ";
@@ -240,6 +244,10 @@ void NodeCallFunction::print(int ident){
     args->print(ident+1);
 }
 
+t_type* NodeCallFunction::return_type() {
+    return new t_type_no_type();
+}
+
 void NodeCallFunctionArgs::print(int ident){
     // for(int i = 0; i < ident; i++)
     //     cout << "  ";
@@ -248,11 +256,19 @@ void NodeCallFunctionArgs::print(int ident){
     rvalue->print(ident);
 }
 
+t_type* NodeCallFunctionArgs::return_type() {
+    return new t_type_no_type();
+}
+
 void NodeUnionDef::print(int ident){
     for(int i = 0; i < ident; i++)
         cout << "  ";
     cout << "UNION " << id << endl;
     fields->print(ident+1);
+}
+
+t_type* NodeUnionDef::return_type() {
+    return new t_type_no_type();
 }
 
 void NodeUnionFields::print(int ident) {
@@ -264,11 +280,19 @@ void NodeUnionFields::print(int ident) {
     cout << id << endl;
 }
 
+t_type* NodeUnionFields::return_type() {
+    return new t_type_no_type();
+}
+
 void NodeStructDef::print(int ident) {
     for(int i = 0; i < ident; i++)
         cout << "  ";
     cout << "STRUCT " << id << endl;
     fields->print(ident+1);
+}
+
+t_type* NodeStructDef::return_type() {
+    return new t_type_no_type();
 }
 
 void NodeStructFields::print(int ident) {
@@ -277,6 +301,10 @@ void NodeStructFields::print(int ident) {
     if(head)
         head->print(ident);
     fields->print(ident+1);
+}
+
+t_type* NodeStructFields::return_type() {
+    return new t_type_no_type();
 }
 
 void NodeConditional::print(int ident){
@@ -291,6 +319,10 @@ void NodeConditional::print(int ident){
         else_def->print(ident+1);
 }
 
+t_type* NodeConditional::return_type() {
+    return new t_type_no_type();
+}
+
 void NodeElif::print(int ident) {
     for(int i = 0; i < ident; i++)
         cout << "  ";
@@ -301,11 +333,19 @@ void NodeElif::print(int ident) {
         elifs->print(ident+1);
 }
 
+t_type* NodeElif::return_type() {
+    return new t_type_no_type();
+}
+
 void NodeElse::print(int ident) {
     for(int i = 0; i < ident; i++)
         cout << "  ";
     cout << "ELSE" << endl;
     body->print(ident+1);
+}
+
+t_type* NodeElse::return_type() {
+    return new t_type_no_type();
 }
 
 void NodeWhile::print(int ident) {
@@ -316,12 +356,20 @@ void NodeWhile::print(int ident) {
     body->print(ident+1);
 }
 
+t_type* NodeWhile::return_type() {
+    return new t_type_no_type();
+}
+
 void NodeFor::print(int ident) {
     for(int i = 0; i < ident; i++)
         cout << "  ";
     cout << "FOR " << iter << endl;
     range->print(ident+1);
     body->print(ident+1);
+}
+
+t_type* NodeFor::return_type() {
+    return new t_type_no_type();
 }
 
 void NodeFuncSignature::print(int ident) {
@@ -333,6 +381,22 @@ void NodeFuncSignature::print(int ident) {
     type->print(ident+1);
 }
 
+t_type* NodeFuncSignature::return_type() {
+    return new t_type_no_type();
+}
+
+void NodeProcSignature::print(int ident) {
+    for(int i = 0; i < ident; i++)
+        cout << "  ";
+    cout << "PROC " << id << endl;
+    if(args)
+        args->print(ident+1);
+}
+
+t_type* NodeProcSignature::return_type() {
+    return new t_type_no_type();
+}
+
 void NodeFuncDef::print(int ident) {
     for(int i = 0; i < ident; i++)
         cout << "  ";
@@ -342,6 +406,10 @@ void NodeFuncDef::print(int ident) {
     body->print(ident+1);
 }
 
+t_type* NodeFuncDef::return_type() {
+    return new t_type_no_type();
+}
+
 void NodeProcDef::print(int ident) {
     for(int i = 0; i < ident; i++)
         cout << "  ";
@@ -349,6 +417,10 @@ void NodeProcDef::print(int ident) {
     if(args)
         args->print(ident+1);
     body->print(ident+1);
+}
+
+t_type* NodeProcDef::return_type() {
+    return new t_type_no_type();
 }
 
 void NodeRoutineArgsDef::print(int ident) {
@@ -362,6 +434,10 @@ void NodeRoutineArgsDef::print(int ident) {
         args->print(ident+1);
 }
 
+t_type* NodeRoutineArgsDef::return_type() {
+    return new t_type_no_type();
+}
+
 void NodeInst::print(int ident){
     // for(int i = 0; i < ident; i++)
     //     cout << "  ";
@@ -371,10 +447,18 @@ void NodeInst::print(int ident){
     inst->print(ident);
 }
 
+t_type* NodeInst::return_type() {
+    return new t_type_no_type();
+}
+
 void NodeBreak::print(int ident){
     for(int i = 0; i < ident; i++)
         cout << "  ";
     cout << "BREAK" << endl;
+}
+
+t_type* NodeBreak::return_type() {
+    return new t_type_no_type();
 }
 
 void NodeContinue::print(int ident){
@@ -383,12 +467,20 @@ void NodeContinue::print(int ident){
     cout << "CONTINUE" << endl;
 }
 
+t_type* NodeContinue::return_type() {
+    return new t_type_no_type();
+}
+
 void NodeAssign::print(int ident){
     for(int i = 0; i < ident; i++)
         cout << "  ";
     cout << "=" << endl;
     lvalue->print(ident+1);
     rvalue->print(ident+1);
+}
+
+t_type* NodeAssign::return_type() {
+    return new t_type_no_type();
 }
 
 void NodeStart::print(int ident){
@@ -405,6 +497,10 @@ void NodePrint::print(int ident){
     exp->print(ident+1);
 }
 
+t_type* NodePrint::return_type() {
+    return new t_type_no_type();
+}
+
 void NodeInput::print(int ident){
     for(int i = 0; i < ident; i++)
         cout << "  ";
@@ -414,11 +510,19 @@ void NodeInput::print(int ident){
         exp->print(ident+1);
 }
 
+t_type* NodeInput::return_type() {
+    return new t_type_no_type();
+}
+
 void NodeReturn::print(int ident){
     for(int i = 0; i < ident; i++)
         cout << "  ";
     cout << "RETURN" << endl;
     exp->print(ident+1);
+}
+
+t_type* NodeReturn::return_type() {
+    return new t_type_no_type();
 }
 
 void NodeArrayRange::print(int ident){
@@ -427,4 +531,8 @@ void NodeArrayRange::print(int ident){
     cout << "RANGE" << endl;
     min->print(ident+1);
     max->print(ident+1);
+}
+
+t_type* NodeArrayRange::return_type() {
+    return new t_type_no_type();
 }

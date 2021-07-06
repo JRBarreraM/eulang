@@ -16,7 +16,7 @@ for (i in [1...n]) {
 
 // Fibonacci recursivo
 
-func fib(int n)::int {
+int func fib(int n) {
     if (n < 2) {
         return n;
     }

@@ -15,14 +15,14 @@ struct square {
 }
 
 // Calculate the length of a side
-func length(side s)::float {
+float func length(side s) {
     let int x = /* This is a multiline comment */ (s.points[1].x - s.points[0].x) ** 2;
     let int y = (s.points[1].y - s.points[0].y) ** 2;
     return (x + y) ** 0.5;
 }
 
 // Calculate the area of a square
-func area(square sq)::float {
+float func area(square sq) {
     return length(sq.sides[0]) ** 2;
 }
 

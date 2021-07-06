@@ -1,6 +1,4 @@
 %{
-    #include <string>
-    #include <queue>
     #include <vector>
     #include <iostream>
     #include <regex>
@@ -18,7 +16,8 @@
     extern queue<string> errors;
     queue<string> st_errors;
     vector<Token*> detectedTokens;
-    
+    queue<string> type_errors;
+
     void yyerror(const char *s);
     void redeclared_variable_error(string id);
     bool check_id_exists(string id);
@@ -127,7 +126,7 @@
 %type <ast>     Selection OptElif OptElse For Range While
 %type <boolean> OptRoof
 %type <ns>      Start
-%type <str>     IdFor Func Proc
+%type <str>     IdFor Funca Proc
 
 // Precedence
 
@@ -171,9 +170,7 @@ Action:         VarInst SEMICOLON               { $$ = $1; }
                 | ID PLUSPLUS SEMICOLON         { t_type* tipo;
                                                   if (check_id_exists($1)){
                                                     string s = st.lookup($1)->type->name;
-                                                    if (s == "int") tipo = new t_type_int();
-                                                    else if (s == "float") tipo = new t_type_float();
-                                                    else tipo = new t_type_error();
+                                                    arithmeticUnOPType(s);
                                                   }
                                                   else tipo = new t_type_error();
                                                   $$ = new NodeAssign(new NodeIDLValue($1), new NodeBinaryOperator(new NodeIDLValue($1), "+", new NodeINT(1), tipo));
@@ -181,9 +178,7 @@ Action:         VarInst SEMICOLON               { $$ = $1; }
                 | ID MINUSMINUS SEMICOLON       { t_type* tipo;
                                                   if (check_id_exists($1)){
                                                     string s = st.lookup($1)->type->name;
-                                                    if (s == "int") tipo = new t_type_int();
-                                                    else if (s == "float") tipo = new t_type_float();
-                                                    else tipo = new t_type_error();
+                                                    arithmeticUnOPType(s);
                                                   }
                                                   else tipo = new t_type_error();
                                                   $$ = new NodeAssign(new NodeIDLValue($1), new NodeBinaryOperator(new NodeIDLValue($1), "-", new NodeINT(1), tipo));
@@ -225,13 +220,15 @@ TypeComposite:  TSTR                               { $$ = new NodeTypePrimitiveD
 VarInst:        VarDef                    { $$ = $1; }
 	            | Assign                  { $$ = $1; }
 ;
-VarDef:         LET Type ID OptAssign     { $$ = new NodeVarDef($2, $3, $4);
+VarDef:         LET Type ID OptAssign     { if ($4 != NULL && ($2->return_type()->name != $4->return_type()->name)) push_type_error("assign", $2->return_type()->name, $4->return_type()->name);
+                                            $$ = new NodeVarDef($2, $3, $4);
                                             if(!st.insert($3,"var",$2->return_type(), $4 != NULL )) redeclared_variable_error($3);}
 ;
 OptAssign:      ASSIGN RValue             { $$ = $2; }
 	            | /* lambda */            { $$ = NULL; }
 ;
-Assign:         LValue ASSIGN RValue      { $$ = new NodeAssign($1, $3); }
+Assign:         LValue ASSIGN RValue      { if ($1->return_type()->name != $3->return_type()->name) push_type_error("assign", $1->return_type()->name, $3->return_type()->name);
+                                            $$ = new NodeAssign($1, $3); }
 ;
 RValue:         Exp                                             { $$ = $1; }
                 | Array                                         { $$ = $1; }
@@ -253,23 +250,23 @@ Exp:            NUMBER               { $$ = new NodeINT($1); }
                 | CHAR               { $$ = new NodeCHAR($1); }
                 | STRING             { $$ = new NodeSTRING($1); }
                 | CallFunc           { $$ = $1; }
-                | Exp ADD Exp        { $$ = new NodeBinaryOperator($1, $2, $3); }
-                | Exp SUB Exp        { $$ = new NodeBinaryOperator($1, $2, $3); }
-                | Exp MUL Exp        { $$ = new NodeBinaryOperator($1, $2, $3); }
-                | Exp DIV Exp        { $$ = new NodeBinaryOperator($1, $2, $3); }
-                | Exp MOD Exp        { $$ = new NodeBinaryOperator($1, $2, $3); }
-                | SUB Exp            { $$ = new NodeUnaryOperator($1, $2); }
-                | Exp POW Exp        { $$ = new NodeBinaryOperator($1, $2, $3); }
+                | Exp ADD Exp        { $$ = new NodeBinaryOperator($1, $2, $3, arithmeticBinOPType($1->return_type()->name,$3->return_type()->name));}
+                | Exp SUB Exp        { $$ = new NodeBinaryOperator($1, $2, $3, arithmeticBinOPType($1->return_type()->name,$3->return_type()->name)); }
+                | Exp MUL Exp        { $$ = new NodeBinaryOperator($1, $2, $3, arithmeticBinOPType($1->return_type()->name,$3->return_type()->name)); }
+                | Exp DIV Exp        { $$ = new NodeBinaryOperator($1, $2, $3, arithmeticBinOPType($1->return_type()->name,$3->return_type()->name)); }
+                | Exp MOD Exp        { $$ = new NodeBinaryOperator($1, $2, $3, arithmeticBinOPType($1->return_type()->name,$3->return_type()->name)); }
+                | SUB Exp            { $$ = new NodeUnaryOperator($1, $2, arithmeticUnOPType($2->return_type()->name)); }
+                | Exp POW Exp        { $$ = new NodeBinaryOperator($1, $2, $3, arithmeticBinOPType($1->return_type()->name,$3->return_type()->name)); }
                 | OPAR Exp CPAR      { $$ = $2; }
-                | Exp AND Exp        { $$ = new NodeBinaryOperator($1, $2, $3);; }
-                | Exp OR Exp         { $$ = new NodeBinaryOperator($1, $2, $3);; }
-                | Exp EQUALS Exp     { $$ = new NodeBinaryOperator($1, $2, $3);; }
-                | Exp NEQUALS Exp    { $$ = new NodeBinaryOperator($1, $2, $3);; }
-                | Exp GREATER Exp    { $$ = new NodeBinaryOperator($1, $2, $3);; }
-                | Exp LESS Exp       { $$ = new NodeBinaryOperator($1, $2, $3);; }
-                | Exp GEQ Exp        { $$ = new NodeBinaryOperator($1, $2, $3);; }
-                | Exp LEQ Exp        { $$ = new NodeBinaryOperator($1, $2, $3);; }
-                | NOT Exp            { $$ = new NodeUnaryOperator($1, $2); }
+                | Exp AND Exp        { $$ = new NodeBinaryOperator($1, $2, $3, booleanBinOPType($1->return_type()->name,$3->return_type()->name)); }
+                | Exp OR Exp         { $$ = new NodeBinaryOperator($1, $2, $3, booleanBinOPType($1->return_type()->name,$3->return_type()->name)); }
+                | Exp EQUALS Exp     { $$ = new NodeBinaryOperator($1, $2, $3, equalsType($1->return_type()->name,$3->return_type()->name)); }
+                | Exp NEQUALS Exp    { $$ = new NodeBinaryOperator($1, $2, $3, equalsType($1->return_type()->name,$3->return_type()->name)); }
+                | Exp GREATER Exp    { $$ = new NodeBinaryOperator($1, $2, $3, comparisonBinOPType($1->return_type()->name,$3->return_type()->name)); }
+                | Exp LESS Exp       { $$ = new NodeBinaryOperator($1, $2, $3, comparisonBinOPType($1->return_type()->name,$3->return_type()->name)); }
+                | Exp GEQ Exp        { $$ = new NodeBinaryOperator($1, $2, $3, comparisonBinOPType($1->return_type()->name,$3->return_type()->name)); }
+                | Exp LEQ Exp        { $$ = new NodeBinaryOperator($1, $2, $3, comparisonBinOPType($1->return_type()->name,$3->return_type()->name)); }
+                | NOT Exp            { $$ = new NodeUnaryOperator($1, $2, booleanUnOPType($2->return_type()->name)); }
                 | LValue OBRACKET Exp SOFORTH Exp CBRACKET  { $$ = new NodeSubArray($1, $3, $5); }
 ;
 
@@ -283,14 +280,15 @@ LValue:         ID                             { check_id_exists($1);
 ;
 
 /* Funciones */
-FuncSignature:  TypePrimitive FUNC ID OPAR FuncPar CPAR SEMICOLON { if(!st.insert($3,"func", $1->return_type(),false)) redeclared_variable_error($3); $$ = new NodeFuncSignature($3,$5,$1); }
+DefFunc:        Funca OPAR FuncPar CPAR OCURLYBRACKET FuncBody CCURLYBRACKET { $$ = new NodeFuncDef($1, $3, $6);
+                                                                                st.exit_scope(); }
 ;
-DefFunc:        Func OPAR FuncPar CPAR  OCURLYBRACKET FuncBody CCURLYBRACKET { $$ = new NodeFuncDef($1, $3, $6);
-                                                                                                        st.exit_scope(); }
-;
-Func:           TypePrimitive FUNC ID   { if(!st.insert($3,"func",$1->return_type(),true)) redeclared_variable_error($3);
+Funca:          TypePrimitive FUNC ID   { if(!st.insert($3,"func",$1->return_type(),true)) redeclared_variable_error($3);
                             st.new_scope();
                             $$ = $3; }
+;
+
+FuncSignature:  TypePrimitive FUNC ID OPAR FuncPar CPAR SEMICOLON { if(!st.insert($3,"func", $1->return_type(),false)) redeclared_variable_error($3); $$ = new NodeFuncSignature($3,$5,$1); }
 ;
 
 FuncPar:        ParList                 { $$ = $1; }
@@ -326,6 +324,9 @@ DefProc:        Proc OPAR FuncPar CPAR OCURLYBRACKET FuncBody CCURLYBRACKET { $$
 Proc:           PROC ID   { if(!st.insert($2, "proc", new t_type_no_type(), true)) redeclared_variable_error($2);
                             st.new_scope();
                             $$ = $2; }
+;
+
+DefProc:        PROC ID OPAR FuncPar CPAR SEMICOLON { $$ = new NodeProcSignature($2, $4); }
 ;
 
 /* Arreglos */
@@ -529,6 +530,7 @@ int main(int argc, char **argv)
     if(stp) st.print();
 
     if(!st_errors.empty()) show_queue(st_errors);
+    if(!type_errors.empty()) show_queue(type_errors);
 
     return 0;
 }

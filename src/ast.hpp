@@ -526,6 +526,19 @@ class NodeBreak : public node {
     t_type* return_type() override;
 };
 
+class NodeProcSignature : public node {
+  protected:
+    string id;
+    node *args;
+
+  public:
+    NodeProcSignature(string id, node *args)
+    : id(id), args(args){};
+
+    void print(int ident);
+    t_type* return_type() override;
+};
+
 class NodeProcDef : public node {
   protected:
     string id;
