@@ -119,14 +119,14 @@
 %token <boolean>  FALSE 63
 
 %type <ast>     Inst InstAux Action FuncBody 
-%type <ast>     Definition Type TypeAux TypePrimitive TypeComposite
+%type <ast>     Definition Type TypeAux TypePrimitive TypeComposite ProcSignature
 %type <ast>     VarInst VarDef OptAssign Assign RValue InputType OptExp Exp
 %type <ast>     LValue DefFunc FuncPar ParList CallFunc ArgElems ArgList FuncSignature
 %type <ast>     DefProc Array ArrExp ArrElems DefUnion UnionBody DefStruct StructBody
 %type <ast>     Selection OptElif OptElse For Range While
 %type <boolean> OptRoof
 %type <ns>      Start
-%type <str>     IdFor Funca Proc
+%type <str>     IdFor Func Proc
 
 // Precedence
 
@@ -193,6 +193,7 @@ Definition:     DefUnion          { $$ = $1; }
                 | DefProc         { $$ = $1; }
                 | DefFunc         { $$ = $1; }
                 | FuncSignature   { $$ = $1; }
+                | ProcSignature   { $$ = $1; }
 ;
 
 /* Tipos */
@@ -280,15 +281,17 @@ LValue:         ID                             { check_id_exists($1);
 ;
 
 /* Funciones */
-DefFunc:        Funca OPAR FuncPar CPAR OCURLYBRACKET FuncBody CCURLYBRACKET { $$ = new NodeFuncDef($1, $3, $6);
+DefFunc:        Func OPAR FuncPar CPAR OCURLYBRACKET FuncBody CCURLYBRACKET { $$ = new NodeFuncDef($1, $3, $6);
                                                                                 st.exit_scope(); }
 ;
-Funca:          TypePrimitive FUNC ID   { if(!st.insert($3,"func",$1->return_type(),true)) redeclared_variable_error($3);
-                            st.new_scope();
-                            $$ = $3; }
+Func: FUNC TypePrimitive DTWODOTS ID     { if(!st.insert($4,"func",$2->return_type(),true)) redeclared_variable_error($4);
+                                            st.new_scope();
+                                            $$ = $4; }
 ;
 
-FuncSignature:  TypePrimitive FUNC ID OPAR FuncPar CPAR SEMICOLON { if(!st.insert($3,"func", $1->return_type(),false)) redeclared_variable_error($3); $$ = new NodeFuncSignature($3,$5,$1); }
+FuncSignature:  MUL FUNC TypePrimitive DTWODOTS ID OPAR FuncPar CPAR SEMICOLON { if(!st.insert($5,"func", $3->return_type(), false)) 
+                                                                                    redeclared_variable_error($5); 
+                                                                                $$ = new NodeFuncSignature($5,$7,$3); }
 ;
 
 FuncPar:        ParList                 { $$ = $1; }
@@ -325,8 +328,8 @@ Proc:           PROC ID   { if(!st.insert($2, "proc", new t_type_no_type(), true
                             st.new_scope();
                             $$ = $2; }
 ;
-
-DefProc:        PROC ID OPAR FuncPar CPAR SEMICOLON { $$ = new NodeProcSignature($2, $4); }
+ProcSignature:   MUL PROC ID OPAR FuncPar CPAR SEMICOLON { if(!st.insert($3,"func", new t_type_no_type(), false)) redeclared_variable_error($3); 
+                                                           $$ = new NodeProcSignature($3, $5); }
 ;
 
 /* Arreglos */

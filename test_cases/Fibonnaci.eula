@@ -4,6 +4,8 @@ let int t1 = 0;
 let int t2 = 1;
 let int nextTerm = t1 + t2;
 
+//*func int::fib(int n);
+
 n = input("Enter the number of terms: ")::int;
 print("Fibonacci Series: " + itostr(t1) + ", " + itostr(t2));
 
@@ -16,7 +18,7 @@ for (i in [1...n]) {
 
 // Fibonacci recursivo
 
-int func fib(int n) {
+func int::fib(int n) {
     if (n < 2) {
         return n;
     }
