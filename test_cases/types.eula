@@ -1,6 +1,6 @@
 let int n;
 let int t1 = 0;
-let float t2 = 1.0;
+let int t2 = 1;//1.0
 let int nextTerm = t1 + t2;
 
 t1 = t2;
@@ -10,3 +10,17 @@ nextTerm = t1 + t2;
 let str hola = "hola";
 let str mundo = "mundo";
 let str hola_mundo = hola + mundo;
+
+let float f = 0.0;
+let int[f] array;
+
+if (true){
+    while(f!=f){
+        f++;
+    }
+    if (f==f){
+        f++;
+    }
+}
+let int[t2] arr = [0...2];
+t2 = arr[f];

@@ -94,5 +94,5 @@ t_type* booleanBinOPType(string left, string right);
 t_type* booleanUnOPType(string left);
 t_type* comparisonBinOPType(string left, string right);
 t_type* equalsType(string left, string right);
-
+void checkExpectedType(string exp, string rec);
 void push_type_error(string action, string typeA, string typeB="");

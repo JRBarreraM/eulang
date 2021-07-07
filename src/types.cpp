@@ -89,13 +89,23 @@ t_type* booleanUnOPType(string left){
     }
 }
 
+void checkExpectedType(string exp, string rec){
+    if (exp != rec){
+        push_type_error("expected", rec, exp);
+    }
+}
+
 void push_type_error(string action, string typeA, string typeB)
 {
-    // compare,assign,operate
     string e;
-    if (typeB != "")
-        e = "Error: type error cannot " + action + " " + typeA + (action == "assign" ? " to " : " with ") + typeB + " at line " + to_string(yylineno) + ", column " + to_string(yycolumn) + "\n";
-    else
-        e = "Error: type error cannot " + action + " " + typeA + " at line " + to_string(yylineno) + ", column " + to_string(yycolumn) + "\n";
+    // expected
+    if (action == "expected"){
+        e = "Error: type error, expected " + typeB + " received " + typeA + " at line " + to_string(yylineno) + ", column " + to_string(yycolumn) + "\n";
+    }
+    // compare,assign,operate
+    else if (typeB != "")
+        e = "Error: type error, cannot " + action + " " + typeB + (action == "assign" ? " to " : " with ") + typeA + " at line " + to_string(yylineno) + ", column " + to_string(yycolumn) + "\n";
+    else if (typeB == "")
+        e = "Error: type error, cannot " + action + " " + typeA + " at line " + to_string(yylineno) + ", column " + to_string(yycolumn) + "\n";
     type_errors.push(e);
 }

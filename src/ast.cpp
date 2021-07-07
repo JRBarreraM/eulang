@@ -129,7 +129,8 @@ void NodeTypeArrayDef::print(int ident) {
 }
 
 t_type* NodeTypeArrayDef::return_type() {
-    return type->return_type();
+    // return type->return_type();
+    return t_type_array::instance();
 }
 
 void NodeTypeList::print(int ident) {

@@ -123,7 +123,7 @@
 %type <ast>     VarInst VarDef OptAssign Assign RValue InputType OptExp Exp
 %type <ast>     LValue DefFunc FuncPar ParList CallFunc ArgElems ArgList FuncSignature
 %type <ast>     DefProc Array ArrExp ArrElems DefUnion UnionBody DefStruct StructBody
-%type <ast>     Selection OptElif OptElse For Range While
+%type <ast>     Selection If OptElif Elif OptElse For Range While LoopWhile
 %type <boolean> OptRoof
 %type <ns>      Start
 %type <str>     IdFor Func Proc
@@ -199,7 +199,7 @@ Definition:     DefUnion          { $$ = $1; }
 /* Tipos */
 Type:           TypeAux                                 { $$ = $1; }
                 | TLIST OBRACKET Type CBRACKET          { $$ = new NodeTypeList($3);} /*Pendiente Recursion*/
-                | TypeAux OBRACKET Exp CBRACKET         { $$ = new NodeTypeArrayDef($1, $3); } /*Pendiente Recursion*/
+                | TypeAux OBRACKET Exp CBRACKET         { checkExpectedType("int",$3->return_type()->name); $$ = new NodeTypeArrayDef($1, $3); } /*Pendiente Recursion*/
                 | TypeAux TILDE  	                    { $$ = new NodeTypePointerDef($1); } /*Pendiente Recursion*/
 ;
 
@@ -268,13 +268,15 @@ Exp:            NUMBER               { $$ = new NodeINT($1); }
                 | Exp GEQ Exp        { $$ = new NodeBinaryOperator($1, $2, $3, comparisonBinOPType($1->return_type()->name,$3->return_type()->name)); }
                 | Exp LEQ Exp        { $$ = new NodeBinaryOperator($1, $2, $3, comparisonBinOPType($1->return_type()->name,$3->return_type()->name)); }
                 | NOT Exp            { $$ = new NodeUnaryOperator($1, $2, booleanUnOPType($2->return_type()->name)); }
-                | LValue OBRACKET Exp SOFORTH Exp CBRACKET  { $$ = new NodeSubArray($1, $3, $5); }
+                | LValue OBRACKET Exp SOFORTH Exp CBRACKET  { checkExpectedType("int",$3->return_type()->name);
+                                                              checkExpectedType("int",$5->return_type()->name);
+                                                              $$ = new NodeSubArray($1, $3, $5); }
 ;
 
 /* Left Values */
 LValue:         ID                             { check_id_exists($1);
                                                 $$ = new NodeIDLValue($1); }
-                | LValue OBRACKET Exp CBRACKET { $$ = new NodeArrayLValue($1, $3); }
+                | LValue OBRACKET Exp CBRACKET { checkExpectedType("int",$3->return_type()->name); $$ = new NodeArrayLValue($1, $3); }
                 | LValue DOT ID                { check_id_exists($3);
                                                   $$ = new NodeLValueDot($1, $3); }
                 | DEREF LValue                 { $$ = new NodePointerLValue($2); }
@@ -337,7 +339,7 @@ Array:          OBRACKET ArrExp CBRACKET   { $$ = new NodeArray($2); }
 ;
 
 ArrExp:         ArrElems                { $$ = $1; }
-                | Exp SOFORTH Exp       { $$ = new NodeArrayRange($1, $3); }
+                | Exp SOFORTH Exp       { checkExpectedType("int",$1->return_type()->name); checkExpectedType("int",$3->return_type()->name); $$ = new NodeArrayRange($1, $3); }
 ;
 
 ArrElems:       ArrElems COMMA RValue    { $$ = new NodeArrayElems($3, $1); }
@@ -372,15 +374,15 @@ StructBody:     VarDef SEMICOLON                { $$ = new NodeStructFields($1);
 ;
 
 /* Condicionales */
-Selection:      If OPAR Exp CPAR OCURLYBRACKET Inst CCURLYBRACKET OptElif OptElse { $$ = new NodeConditional($3, $6, $8, $9); st.exit_scope(); }
+Selection:      If OCURLYBRACKET Inst CCURLYBRACKET OptElif OptElse { $$ = new NodeConditional($1, $3, $5, $6); st.exit_scope(); }
 ;
-If:             IF      { st.new_scope(); }
+If:             IF OPAR Exp CPAR     { checkExpectedType("bool",$3->return_type()->name); $$= $3; st.new_scope(); }
 ;
 
-OptElif:        Elif OPAR Exp CPAR OCURLYBRACKET Inst CCURLYBRACKET OptElif     { $$ = new NodeElif($3, $6, $8); st.exit_scope(); }
+OptElif:        Elif OCURLYBRACKET Inst CCURLYBRACKET OptElif     { $$ = new NodeElif($1, $3, $5); st.exit_scope(); }
                 | /* lambda */                                                  { $$ = NULL; }
 ;
-Elif:           ELIF    { st.new_scope(); }
+Elif:           ELIF OPAR Exp CPAR   { checkExpectedType("bool",$3->return_type()->name); $$= $3; st.new_scope(); }
 ;
 
 OptElse:        Else OCURLYBRACKET Inst CCURLYBRACKET   { $$ = new NodeElse($3); st.exit_scope(); }
@@ -403,9 +405,9 @@ Range:          Exp         { $$ = $1; }
 ;
 
 /* While Loop */
-While:          LoopWhile OPAR Exp CPAR OCURLYBRACKET Inst CCURLYBRACKET    { $$ = new NodeWhile($3, $6); st.exit_scope(); }
+While:          LoopWhile  OCURLYBRACKET Inst CCURLYBRACKET    { $$ = new NodeWhile($1, $3); st.exit_scope(); }
 ;
-LoopWhile:      WHILE   { st.new_scope(); }
+LoopWhile:      WHILE OPAR Exp CPAR  { checkExpectedType("bool",$3->return_type()->name); $$=$3; st.new_scope(); }
 ;
 %%
 
