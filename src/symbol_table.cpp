@@ -55,7 +55,7 @@ symbol* sym_table::check_redef(string id) {
 	return NULL;
 }
 
-bool sym_table::insert(string id, string category, t_type* t, bool assigned) {
+bool sym_table::insert(string id, string category, t_type* t, bool assigned, extra_info* ef) {
 	// First check if id is in last scope
 	if(table.find(id) == table.end())
 		table[id];
@@ -69,7 +69,7 @@ bool sym_table::insert(string id, string category, t_type* t, bool assigned) {
 		s->assigned = true;
 		return true;
 	}
-	table[id].push_front(new symbol(id, category, scope_stack.back(), t, assigned));
+	table[id].push_front(new symbol(id, category, scope_stack.back(), t, assigned, ef));
 	return true;
 }
 
@@ -96,6 +96,18 @@ symbol* sym_table::lookup(string id) {
 	return pervasive;
 }
 
+symbol* sym_table::lookup(string id, int scope) {
+	for(auto e : table[id]) {
+		if(e->id == id) {
+			if(scope == e->scope) {
+				return e;
+			}
+		}
+	}
+	symbol* best = NULL;
+	return best;
+}
+
 void sym_table::print() {
 	cout << "\n***Printing Symbol Table***" << endl;
 
@@ -108,4 +120,11 @@ void sym_table::print() {
 		}
 		cout << "]" << endl;
 	}
+}
+int sym_table::get_last_scope(){
+	return last_scope;
+}
+
+int sym_table::get_top_scope(){
+	return scope_stack.back();
 }

@@ -9,6 +9,7 @@ class t_type {
 		string name;
 		t_type(string name):
 			name(name) {}
+		string get_name();
 };
 
 template<typename T>
@@ -94,5 +95,5 @@ t_type* booleanBinOPType(string left, string right);
 t_type* booleanUnOPType(string left);
 t_type* comparisonBinOPType(string left, string right);
 t_type* equalsType(string left, string right);
-void checkExpectedType(string exp, string rec);
+bool checkExpectedType(string exp, string rec);
 void push_type_error(string action, string typeA, string typeB="");

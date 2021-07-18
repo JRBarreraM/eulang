@@ -6,27 +6,28 @@ let int nextTerm = t1 + t2;
 
 //*func int::fib(int n);
 
-n = input("Enter the number of terms: ")::int;
-print("Fibonacci Series: " + itostr(t1) + ", " + itostr(t2));
+//n = input("Enter the number of terms: ")::int;
+//print("Fibonacci Series: " + itostr(t1) + ", " + itostr(t2));
 
 for (i in [1...n]) {
-    print(itostr(nextTerm) + ", ");
+    //print(itostr(nextTerm) + ", ");
     t1 = t2;
     t2 = nextTerm;
     nextTerm = t1 + t2;
 }
 
 // Fibonacci recursivo
-
 func int::fib(int n) {
     if (n < 2) {
         return n;
     }
-    else{
-        // fn = fn-1 + fn-2
-        return fib(n-1) + fib(n-2);
-    }
+    return fib(n-1) + fib(n-2);
 }
 
+proc hola(int a){
+    a++;
+}
+let float f = 0.0;
+let int a = hola(f);
 let int fibex = fib(n);
-print("Fibonacci of " + itostr(n) + " " + itostr(fibex) );
+//print("Fibonacci of " + itostr(n) + " " + itostr(fibex) );

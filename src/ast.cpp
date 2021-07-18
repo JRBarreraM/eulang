@@ -246,7 +246,8 @@ void NodeCallFunction::print(int ident){
 }
 
 t_type* NodeCallFunction::return_type() {
-    return t_type_no_type::instance();
+    symbol* lookUp = st.lookup(id);
+    return lookUp ? lookUp->type : t_type_no_type::instance();
 }
 
 void NodeCallFunctionArgs::print(int ident){

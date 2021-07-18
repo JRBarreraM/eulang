@@ -4,6 +4,10 @@ extern queue<string> type_errors;
 extern int yylineno;
 extern int yycolumn;
 
+string t_type :: get_name() {
+    return name;
+}
+
 t_type* arithmeticBinOPType(string left, string right){
 
     if(left == "error" || right == "error") return t_type_error::instance();
@@ -89,10 +93,12 @@ t_type* booleanUnOPType(string left){
     }
 }
 
-void checkExpectedType(string exp, string rec){
+bool checkExpectedType(string exp, string rec){
     if (exp != rec){
         push_type_error("expected", rec, exp);
+        return false;
     }
+    return true;
 }
 
 void push_type_error(string action, string typeA, string typeB)

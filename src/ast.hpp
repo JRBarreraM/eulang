@@ -327,12 +327,10 @@ class NodeCallFunction : public node {
 
 /* Representation of: RValue , FuncArgs. */
 class NodeCallFunctionArgs : public node {
-  protected:
-    node *head;
-    node *rvalue;
-
   public:
-    NodeCallFunctionArgs(node *rvalue, node *head = NULL)
+    NodeCallFunctionArgs *head;
+    node *rvalue;
+    NodeCallFunctionArgs(node *rvalue, NodeCallFunctionArgs *head = NULL)
     : rvalue(rvalue), head(head) {};
 
     void print(int ident);
@@ -490,20 +488,6 @@ class NodeFuncSignature : public node {
     t_type* return_type() override;
 };
 
-class NodeFuncDef : public node {
-  protected:
-    string id;
-    node *args;
-    node *body;
-
-  public:
-    NodeFuncDef(string id, node *args, node *body)
-    : id(id), args(args), body(body) {};
-
-    void print(int ident);
-    t_type* return_type() override;
-};
-
 class NodeReturn : public node {
   protected:
     node* exp;
@@ -554,15 +538,25 @@ class NodeProcDef : public node {
 };
 
 class NodeRoutineArgsDef : public node {
-  protected:
-    node *args;
+  public:
+    NodeRoutineArgsDef *args;
     node *type;
     bool ref;
     string id;
-
-  public:
-    NodeRoutineArgsDef(node *type, bool ref, string id, node *args=NULL)
+    NodeRoutineArgsDef(node *type, bool ref, string id, NodeRoutineArgsDef *args=NULL)
     : type(type), ref(ref), id(id), args(args) {};
+
+    void print(int ident);
+    t_type* return_type() override;
+};
+
+class NodeFuncDef : public node {
+  public:
+    string id;
+    NodeRoutineArgsDef *args;
+    node *body;
+    NodeFuncDef(string id, NodeRoutineArgsDef *args, node *body)
+    : id(id), args(args), body(body) {};
 
     void print(int ident);
     t_type* return_type() override;
