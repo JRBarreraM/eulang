@@ -9,7 +9,7 @@ class t_type {
 		string name;
 		t_type(string name):
 			name(name) {}
-		string get_name();
+		virtual string get_name();
 };
 
 template<typename T>
@@ -64,9 +64,12 @@ class t_type_pointer : public singleton_type<t_type_pointer>{
 		pt_type(pt_type), singleton_type("pointer"){}
 };
 
-class t_type_array : public singleton_type<t_type_array>{
-	friend class singleton_type<t_type_array>;
-	t_type_array() : singleton_type("array"){}
+class t_type_array : public t_type{
+	public: 
+		int len;
+		t_type* type;
+		t_type_array(t_type* t, int l) : t_type("array"), type(t), len(l) {}
+		string get_name() override;
 };
 
 class t_type_str : public singleton_type<t_type_str>{

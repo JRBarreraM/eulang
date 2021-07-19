@@ -20,6 +20,8 @@
     queue<string> custom_errors;
     bool func_has_return = false;
     string actual_func_id = "";
+    string type_elem_array = "";
+    bool all_same_type = true;
 
     void yyerror(const char *s);
     void redeclared_variable_error(string id);
@@ -209,7 +211,7 @@ Definition:     DefUnion          { $$ = $1; }
 /* Tipos */
 Type:           TypeAux                                 { $$ = $1; }
                 | TLIST OBRACKET Type CBRACKET          { $$ = new NodeTypeList($3);} /*Pendiente Recursion*/
-                | TypeAux OBRACKET Exp CBRACKET         { checkExpectedType("int",$3->return_type()->get_name()); $$ = new NodeTypeArrayDef($1, $3); } /*Pendiente Recursion*/
+                | Type OBRACKET Exp CBRACKET            { checkExpectedType("int",$3->return_type()->get_name()); $$ = new NodeTypeArrayDef($1, $3); } /*Pendiente Recursion*/
                 | TypeAux TILDE  	                    { $$ = new NodeTypePointerDef($1); } /*Pendiente Recursion*/
 ;
 
@@ -346,15 +348,15 @@ ProcSignature:   MUL PROC ID OPAR FuncPar CPAR SEMICOLON { if(!st.insert($3,"fun
 ;
 
 /* Arreglos */
-Array:          OBRACKET ArrExp CBRACKET   { $$ = new NodeArray($2); }
+Array:          OBRACKET ArrExp CBRACKET   { $$ = new NodeArray($2); type_elem_array = "";}
 ;
 
-ArrExp:         ArrElems                { $$ = $1; }
+ArrExp:         ArrElems                { $$ = $1; if (!all_same_type){ type_errors.push("type error: not all elements in array have the same type at line " + to_string(yylineno) + "\n"); } }
                 | Exp SOFORTH Exp       { checkExpectedType("int",$1->return_type()->get_name()); checkExpectedType("int",$3->return_type()->get_name()); $$ = new NodeArrayRange($1, $3); }
 ;
 
-ArrElems:       ArrElems COMMA RValue    { $$ = new NodeArrayElems($3, $1); }
-		        | RValue                 { $$ = new NodeArrayElems($1); }
+ArrElems:       ArrElems COMMA RValue    { $$ = new NodeArrayElems($3, $1); if (type_elem_array != $3->return_type()->get_name()){all_same_type = false;} }
+		        | RValue                 { $$ = new NodeArrayElems($1); type_elem_array = $1->return_type()->get_name(); }
 ;
 
 /* Union */

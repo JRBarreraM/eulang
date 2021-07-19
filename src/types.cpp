@@ -8,6 +8,10 @@ string t_type :: get_name() {
     return name;
 }
 
+string t_type_array :: get_name(){
+    return name + "<" + type->get_name() + ">[" + to_string(len) + "]";
+}
+
 t_type* arithmeticBinOPType(string left, string right){
 
     if(left == "error" || right == "error") return t_type_error::instance();

@@ -1,1 +1,2 @@
 let int i;
+let int[3][3] hola;

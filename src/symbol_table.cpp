@@ -21,7 +21,7 @@ sym_table::sym_table() {
 	insert("ftostr", "func", t_type_str::instance(), true);
 	insert("lena", "func", t_type_int::instance(), true);
 	insert("lens", "func", t_type_int::instance(), true);
-	insert("split", "func", t_type_array::instance(), true);
+	insert("split", "func", t_type_no_type::instance(), true);
 	insert("stoint", "func", t_type_int::instance(), true);
 	insert("stofloat", "func", t_type_float::instance(), true);
 	insert("lenl", "func", t_type_int::instance(), true);
