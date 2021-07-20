@@ -1,2 +1,11 @@
 let int i;
 let int[3][3] hola;
+let float entero = hola[0];
+entero = hola[0];
+entero = i[1...3];
+let str tring = "hola";
+tring = tring[1...3] + tring[1...3];
+print(tring[1...3]);
+let list[int] lista = [1,2,3,4];
+lista = hola[0] + hola[0];
+hola = hola + hola;

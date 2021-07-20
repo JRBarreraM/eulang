@@ -140,7 +140,7 @@ void NodeTypeList::print(int ident) {
 }
 
 t_type* NodeTypeList::return_type() {
-    return type->return_type();
+    return new t_type_list(type->return_type());
 }
 
 void NodeVarDef::print(int ident) {
@@ -198,7 +198,16 @@ void NodeArrayLValue::print(int ident){
 }
 
 t_type* NodeArrayLValue::return_type() {
-    return lvalue->return_type();
+    if (lvalue->return_type()->name == "array"){
+        return dynamic_cast<t_type_array*>(lvalue->return_type())->type;
+    }
+    else if (lvalue->return_type()->name == "string"){
+        return t_type_char::instance();
+    }
+    if (lvalue->return_type()->name == "list"){
+        return dynamic_cast<t_type_list*>(lvalue->return_type())->type;
+    }
+    return t_type_error::instance();
 }
 
 void NodeSubArray::print(int ident){
@@ -211,7 +220,8 @@ void NodeSubArray::print(int ident){
 }
 
 t_type* NodeSubArray::return_type() {
-    return lvalue->return_type();
+    string t_name = lvalue->return_type()->name;
+    return  (t_name == "array" || t_name == "str" || t_name == "list") ? lvalue->return_type() : t_type_error::instance();
 }
 
 void NodeArray::print(int ident){
@@ -535,5 +545,5 @@ void NodeArrayRange::print(int ident){
 }
 
 t_type* NodeArrayRange::return_type() {
-    return t_type_no_type::instance();
+    return t_type_int::instance();
 }

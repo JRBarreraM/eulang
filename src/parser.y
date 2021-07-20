@@ -174,7 +174,7 @@ Action:         VarInst SEMICOLON               { $$ = $1; }
                 | While                         { $$ = $1; }
                 | For                           { $$ = $1; }
                 | VENGEANCE LValue SEMICOLON    { $$ = new NodeVengeance($2); }
-                | PRINT OPAR Exp CPAR SEMICOLON { $$ = new NodePrint($3); }
+                | PRINT OPAR Exp CPAR SEMICOLON { checkExpectedType("str", $3->return_type()->get_name()); $$ = new NodePrint($3); }
                 | CONTINUE SEMICOLON            { $$ = new NodeContinue(); }
                 | BREAK SEMICOLON               { $$ = new NodeBreak(); }
                 | ID PLUSPLUS SEMICOLON         { t_type* tipo;
@@ -233,14 +233,14 @@ TypeComposite:  TSTR                               { $$ = new NodeTypePrimitiveD
 VarInst:        VarDef                    { $$ = $1; }
 	            | Assign                  { $$ = $1; }
 ;
-VarDef:         LET Type ID OptAssign     { if ($4 != NULL && ($2->return_type()->get_name() != $4->return_type()->get_name())) push_type_error("assign", $2->return_type()->get_name(), $4->return_type()->get_name());
+VarDef:         LET Type ID OptAssign     { if($4 != NULL) checkAssignType($2->return_type(), $4->return_type());
                                             $$ = new NodeVarDef($2, $3, $4);
                                             if(!st.insert($3,"var",$2->return_type(), $4 != NULL )) redeclared_variable_error($3);}
 ;
 OptAssign:      ASSIGN RValue             { $$ = $2; }
 	            | /* lambda */            { $$ = NULL; }
 ;
-Assign:         LValue ASSIGN RValue      { if ($1->return_type()->get_name() != $3->return_type()->get_name()) push_type_error("assign", $1->return_type()->get_name(), $3->return_type()->get_name());
+Assign:         LValue ASSIGN RValue      { checkAssignType($1->return_type(), $3->return_type());
                                             $$ = new NodeAssign($1, $3); }
 ;
 RValue:         Exp                                             { $$ = $1; }
@@ -263,7 +263,7 @@ Exp:            NUMBER               { $$ = new NodeINT($1); }
                 | CHAR               { $$ = new NodeCHAR($1); }
                 | STRING             { $$ = new NodeSTRING($1); }
                 | CallFunc           { $$ = $1; }
-                | Exp ADD Exp        { $$ = new NodeBinaryOperator($1, $2, $3, arithmeticBinOPType($1->return_type()->get_name(),$3->return_type()->get_name()));}
+                | Exp ADD Exp        { $$ = new NodeBinaryOperator($1, $2, $3, addOPType($1->return_type(),$3->return_type()));}
                 | Exp SUB Exp        { $$ = new NodeBinaryOperator($1, $2, $3, arithmeticBinOPType($1->return_type()->get_name(),$3->return_type()->get_name())); }
                 | Exp MUL Exp        { $$ = new NodeBinaryOperator($1, $2, $3, arithmeticBinOPType($1->return_type()->get_name(),$3->return_type()->get_name())); }
                 | Exp DIV Exp        { $$ = new NodeBinaryOperator($1, $2, $3, arithmeticBinOPType($1->return_type()->get_name(),$3->return_type()->get_name())); }
@@ -282,13 +282,16 @@ Exp:            NUMBER               { $$ = new NodeINT($1); }
                 | NOT Exp            { $$ = new NodeUnaryOperator($1, $2, booleanUnOPType($2->return_type()->get_name())); }
                 | LValue OBRACKET Exp SOFORTH Exp CBRACKET  { checkExpectedType("int",$3->return_type()->get_name());
                                                               checkExpectedType("int",$5->return_type()->get_name());
+                                                              checkSubscriptable($1->return_type()->name);
                                                               $$ = new NodeSubArray($1, $3, $5); }
 ;
 
 /* Left Values */
 LValue:         ID                             { check_id_exists($1);
                                                 $$ = new NodeIDLValue($1); }
-                | LValue OBRACKET Exp CBRACKET { checkExpectedType("int",$3->return_type()->get_name()); $$ = new NodeArrayLValue($1, $3); }
+                | LValue OBRACKET Exp CBRACKET { checkExpectedType("int",$3->return_type()->get_name());
+                                                 checkSubscriptable($1->return_type()->name);
+                                                 $$ = new NodeArrayLValue($1, $3); }
                 | LValue DOT ID                { check_id_exists($3);
                                                   $$ = new NodeLValueDot($1, $3); }
                 | DEREF LValue                 { $$ = new NodePointerLValue($2); }

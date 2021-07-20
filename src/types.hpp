@@ -74,12 +74,15 @@ class t_type_array : public t_type{
 
 class t_type_str : public singleton_type<t_type_str>{
 	friend class singleton_type<t_type_str>;
-	t_type_str() : singleton_type("str"){}
+	t_type_str() : singleton_type("str") {}
 };
 
-class t_type_list : public singleton_type<t_type_list>{
-	friend class singleton_type<t_type_list>;
-	t_type_list() : singleton_type("list"){}
+class t_type_list : public t_type{
+	public: 
+		int len = 0;
+		t_type* type;
+		t_type_list(t_type* t) : t_type("list"), type(t) {}
+		string get_name() override;
 };
 
 class t_type_struct : public singleton_type<t_type_struct>{
@@ -92,11 +95,14 @@ class t_type_union : public singleton_type<t_type_union>{
 	t_type_union() : singleton_type("union"){}
 };
 
+t_type* addOPType(t_type* lvalue, t_type* rvalue);
 t_type* arithmeticBinOPType(string left, string right);
 t_type* arithmeticUnOPType(string left);
 t_type* booleanBinOPType(string left, string right);
 t_type* booleanUnOPType(string left);
 t_type* comparisonBinOPType(string left, string right);
 t_type* equalsType(string left, string right);
+void checkAssignType(t_type* left, t_type* right);
+void checkSubscriptable(string node_type);
 bool checkExpectedType(string exp, string rec);
 void push_type_error(string action, string typeA, string typeB="");

@@ -29,7 +29,7 @@ sym_table::sym_table() {
 	insert("push", "proc", t_type_no_type::instance(), true);
 	insert("insert", "proc", t_type_no_type::instance(), true);
 	insert("find", "func", t_type_int::instance(), true);
-	insert("reversed", "func", t_type_list::instance(), true);
+	insert("reversed", "func", t_type_no_type::instance(), true);
 	insert("remove", "proc", t_type_no_type::instance(), true);
 	insert("ltostr", "func", t_type_str::instance(), true);
 	last_scope = 1;
