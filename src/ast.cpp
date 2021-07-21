@@ -175,7 +175,7 @@ void NodeLValueDot::print(int ident){
 }
 
 t_type* NodeLValueDot::return_type() {
-    return t_type_no_type::instance();
+    return type;
 }
 
 void NodePointerLValue::print(int ident){

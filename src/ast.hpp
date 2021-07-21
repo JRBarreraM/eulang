@@ -218,10 +218,11 @@ class NodeLValueDot : public node {
   protected:
     node *lvalue;
     string id;
+    t_type* type;
 
   public:
-    NodeLValueDot(node *lvalue, string id)
-    : lvalue(lvalue), id(id) {};
+    NodeLValueDot(node *lvalue, string id, t_type* t)
+    : lvalue(lvalue), id(id), type(t) {};
 
     void print(int ident);
     t_type* return_type() override;

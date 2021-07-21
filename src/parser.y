@@ -26,6 +26,9 @@
     void yyerror(const char *s);
     void redeclared_variable_error(string id);
     bool check_id_exists(string id);
+    t_type* check_register_id(string id);
+    t_type* check_register_attr(t_type* l_type, string id);
+
     bool check_func_args(string id, NodeCallFunctionArgs* args);
     void calcNumOfArgs(string id, NodeRoutineArgsDef* args);
     regex extension("(.*)\\.eula");
@@ -226,7 +229,7 @@ TypePrimitive:  TBOOL                              { $$ = new NodeTypePrimitiveD
 ;
                 
 TypeComposite:  TSTR                               { $$ = new NodeTypePrimitiveDef(t_type_str::instance()); }
-                | ID                               { $$ = new NodeTypePrimitiveDef(new t_type($1)); } //Check this
+                | ID                               { $$ = new NodeTypePrimitiveDef(check_register_id($1)); }
 ;
 
 /* Definiciones */
@@ -292,8 +295,7 @@ LValue:         ID                             { check_id_exists($1);
                 | LValue OBRACKET Exp CBRACKET { checkExpectedType("int",$3->return_type()->get_name());
                                                  checkSubscriptable($1->return_type()->name);
                                                  $$ = new NodeArrayLValue($1, $3); }
-                | LValue DOT ID                { check_id_exists($3);
-                                                  $$ = new NodeLValueDot($1, $3); }
+                | LValue DOT ID                { $$ = new NodeLValueDot($1, $3, check_register_attr($1->return_type(), $3)); }
                 | DEREF LValue                 { $$ = new NodePointerLValue($2); }
 ;
 
@@ -365,7 +367,7 @@ ArrElems:       ArrElems COMMA RValue    { $$ = new NodeArrayElems($3, $1); if (
 /* Union */
 DefUnion:       Union ID OCURLYBRACKET UnionBody CCURLYBRACKET   { $$ = new NodeUnionDef($2, $4);
                                                                     st.exit_scope();
-                                                                    if(!st.insert($2, "union", t_type_union::instance(), true)) redeclared_variable_error($2); }
+                                                                    if(!st.insert($2, "union", new t_type($2), true, new extra_info_struct(st.get_last_scope()))) redeclared_variable_error($2); }
 ;
 
 Union:          TUNION      { st.new_scope(); }
@@ -380,7 +382,7 @@ UnionBody:      LET Type ID SEMICOLON                 { $$ = new NodeUnionFields
 /* Struct */
 DefStruct:      Struct ID OCURLYBRACKET StructBody CCURLYBRACKET { $$ = new NodeStructDef($2, $4); 
                                                                     st.exit_scope();
-                                                                    if(!st.insert($2, "struct", t_type_struct::instance(), true)) redeclared_variable_error($2); }
+                                                                    if(!st.insert($2, "struct", new t_type($2), true, new extra_info_struct(st.get_last_scope()))){redeclared_variable_error($2);}}
 ;
 Struct:         TSTRUCT     { st.new_scope(); }
 ;
@@ -447,6 +449,31 @@ bool check_id_exists(string id)
         return false;
     }
     return true;
+}
+
+t_type* check_register_id(string id){
+    symbol* s_lookup = st.lookup(id);
+    if (s_lookup == NULL || (s_lookup->category != "union" && s_lookup->category != "struct")){
+        custom_errors.push("syntax errors: type '" + id  + "' is not a struct nor a union '" + "' at line " + to_string(yylineno) + " column " + to_string(yycolumn) + " \n");
+        return t_type_error::instance();
+    }
+    return s_lookup->type;
+}
+t_type* check_register_attr(t_type* l_type, string id){
+    symbol* s_lookup = st.lookup(l_type->get_name());
+    if (s_lookup == NULL || (s_lookup->category != "union" && s_lookup->category != "struct")){
+        custom_errors.push("syntax errors: type '" + l_type->get_name()  + "' is not a struct nor a union '" + "' at line " + to_string(yylineno) + " column " + to_string(yycolumn) + " \n");
+        return t_type_error::instance();
+    }
+
+    int cs = dynamic_cast<extra_info_struct*>(s_lookup->extra_inf)->child_scope;
+    symbol* attr = st.lookup(id,cs);
+
+    if (attr == NULL){
+        custom_errors.push("syntax errors: type '" + l_type->get_name()  + "' has no attribute '" + id +"' at line " + to_string(yylineno) + " column " + to_string(yycolumn) + " \n");
+        return t_type_error::instance();
+    }
+    return attr->type;
 }
 
 void calcNumOfArgs(string id, NodeRoutineArgsDef* args) {

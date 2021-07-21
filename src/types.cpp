@@ -159,6 +159,7 @@ t_type* booleanUnOPType(string left){
 }
 
 bool checkExpectedType(string exp, string rec){
+    if(exp == "error" || rec == "error") return false;
     if (exp != rec){
         push_type_error("expected", rec, exp);
         return false;

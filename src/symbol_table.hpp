@@ -20,6 +20,13 @@ class extra_info_func : public extra_info {
 			extra_info(), child_scope(cs), numOfArgs(na){};
 };
 
+class extra_info_struct : public extra_info {
+	public :
+		int child_scope;
+		extra_info_struct(int cs):
+			extra_info(), child_scope(cs){};
+};
+
 class symbol {
 	public:
 		string id;

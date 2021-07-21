@@ -1,0 +1,30 @@
+/* This is a point in 2d */
+union point {
+    let int x;
+    let int y;
+}
+
+/* This is a line in 2d space */
+union side {
+    let point[2] points;
+}
+
+/* Square represented by 4 lines */
+union square {
+    let side[4] sides;
+}
+
+let square my_square;
+
+for(i in [0...4])
+{
+    my_square.sides[i].points[0].x = 1;
+    my_square.sides[i].points[1].y = 2;
+}
+
+// Calculate the area of a square
+func float::area(square sq) {
+    return sq.sides[0].points[0].x ** 2;
+}
+
+let float arrea = area(my_square.sides[0]);
