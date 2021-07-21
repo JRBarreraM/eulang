@@ -12,19 +12,21 @@ union side {
 /* Square represented by 4 lines */
 union square {
     let side[4] sides;
+    let int ~ pointer;
 }
 
-let square my_square;
+let square ~ my_square = new square;
 
 for(i in [0...4])
 {
-    my_square.sides[i].points[0].x = 1;
-    my_square.sides[i].points[1].y = 2;
+    @my_square.sides[i].points[0].x = input("Please enter X coordinate of side ")::int;
+    @my_square.sides[i].points[1].y = 2;
+    @(@my_square.pointer) = 2;
 }
 
 // Calculate the area of a square
-func float::area(square sq) {
+func int::area(square sq) {
     return sq.sides[0].points[0].x ** 2;
 }
 
-let float arrea = area(my_square.sides[0]);
+let int arrea = area(@my_square);

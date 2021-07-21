@@ -57,11 +57,11 @@ class t_type_float : public singleton_type<t_type_float>{
 	t_type_float() : singleton_type("float") {}
 };
 
-class t_type_pointer : public singleton_type<t_type_pointer>{
-	friend class singleton_type<t_type_pointer>;
-	t_type pt_type;
-	t_type_pointer(const t_type& pt_type):
-		pt_type(pt_type), singleton_type("pointer"){}
+class t_type_pointer : public t_type{
+	public: 
+		t_type* type;
+		t_type_pointer(t_type* t) : t_type("pointer"), type(t) {}
+		string get_name() override;
 };
 
 class t_type_array : public t_type{

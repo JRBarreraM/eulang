@@ -152,8 +152,8 @@
 %left       MUL DIV MOD
 %right      POW
 %left       OBRACKET CBRACKET
-%right      DEREF
 %left       DOT
+%right      DEREF
 %nonassoc   ID
 %left       OPAR
 
@@ -176,7 +176,7 @@ Action:         VarInst SEMICOLON               { $$ = $1; }
                 | Selection                     { $$ = $1; }
                 | While                         { $$ = $1; }
                 | For                           { $$ = $1; }
-                | VENGEANCE LValue SEMICOLON    { $$ = new NodeVengeance($2); }
+                | VENGEANCE LValue SEMICOLON    { checkExpectedType("pointer", $2->return_type()->name); $$ = new NodeVengeance($2); }
                 | PRINT OPAR Exp CPAR SEMICOLON { checkExpectedType("str", $3->return_type()->get_name()); $$ = new NodePrint($3); }
                 | CONTINUE SEMICOLON            { $$ = new NodeContinue(); }
                 | BREAK SEMICOLON               { $$ = new NodeBreak(); }
@@ -213,9 +213,9 @@ Definition:     DefUnion          { $$ = $1; }
 
 /* Tipos */
 Type:           TypeAux                                 { $$ = $1; }
-                | TLIST OBRACKET Type CBRACKET          { $$ = new NodeTypeList($3);} /*Pendiente Recursion*/
+                | TLIST OBRACKET Type CBRACKET          { $$ = new NodeTypeList($3);}
                 | Type OBRACKET Exp CBRACKET            { checkExpectedType("int",$3->return_type()->get_name()); $$ = new NodeTypeArrayDef($1, $3); } /*Pendiente Recursion*/
-                | TypeAux TILDE  	                    { $$ = new NodeTypePointerDef($1); } /*Pendiente Recursion*/
+                | Type TILDE  	                        { $$ = new NodeTypePointerDef($1); }
 ;
 
 TypeAux:        TypePrimitive                      { $$ = $1; }
@@ -249,7 +249,7 @@ Assign:         LValue ASSIGN RValue      { checkAssignType($1->return_type(), $
 RValue:         Exp                                             { $$ = $1; }
                 | Array                                         { $$ = $1; }
                 | NEW Type                                      { $$ = new NodeNew($2); }
-                | INPUT OPAR OptExp CPAR DTWODOTS InputType     { $$ = new NodeInput($6, $3); }
+                | INPUT OPAR OptExp CPAR DTWODOTS InputType     { if ($3 != NULL) checkExpectedType("str",$3->return_type()->get_name()); $$ = new NodeInput($6, $3); }
 ;
 InputType:      TypePrimitive   { $$ = $1; }
                 | TSTR          { $$ = new NodeTypePrimitiveDef(t_type_str::instance()); }
@@ -296,7 +296,8 @@ LValue:         ID                             { check_id_exists($1);
                                                  checkSubscriptable($1->return_type()->name);
                                                  $$ = new NodeArrayLValue($1, $3); }
                 | LValue DOT ID                { $$ = new NodeLValueDot($1, $3, check_register_attr($1->return_type(), $3)); }
-                | DEREF LValue                 { $$ = new NodePointerLValue($2); }
+                | DEREF LValue                 { checkExpectedType("pointer", $2->return_type()->name) ; $$ = new NodePointerLValue($2); }
+                | DEREF OPAR LValue CPAR       { checkExpectedType("pointer", $3->return_type()->name) ; $$ = new NodePointerLValue($3); }
 ;
 
 /* Funciones */

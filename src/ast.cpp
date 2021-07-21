@@ -85,7 +85,7 @@ void NodeNew::print(int ident){
 }
 
 t_type* NodeNew::return_type() {
-    return type->return_type();
+    return new t_type_pointer(type->return_type());
 }
 
 void NodeVengeance::print(int ident){
@@ -117,7 +117,7 @@ void NodeTypePointerDef::print(int ident) {
 }
 
 t_type* NodeTypePointerDef::return_type() {
-    return type->return_type();
+    return new t_type_pointer(type->return_type());
 }
 
 void NodeTypeArrayDef::print(int ident) {
@@ -186,7 +186,7 @@ void NodePointerLValue::print(int ident){
 }
 
 t_type* NodePointerLValue::return_type() {
-    return lvalue->return_type();
+    return lvalue->return_type()->name == "pointer" ? dynamic_cast<t_type_pointer*>(lvalue->return_type())->type : t_type_error::instance();
 }
 
 void NodeArrayLValue::print(int ident){
@@ -522,7 +522,7 @@ void NodeInput::print(int ident){
 }
 
 t_type* NodeInput::return_type() {
-    return t_type_no_type::instance();
+    return type->return_type();
 }
 
 void NodeReturn::print(int ident){

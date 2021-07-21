@@ -13,6 +13,10 @@ string t_type_array :: get_name(){
     return name + "<" + type->get_name() + ">[" + to_string(len) + "]";
 }
 
+string t_type_pointer :: get_name(){
+    return type->get_name() + "~";
+}
+
 string t_type_list :: get_name(){
     return name + "<" + type->get_name() + ">";
 }
@@ -178,6 +182,7 @@ void checkAssignType(t_type* lvalue, t_type* rvalue){
 }
 
 void checkSubscriptable(string node_type){
+    if(node_type == "error") return;
     if (node_type != "array" && node_type != "str" && node_type != "list" ){custom_errors.push("syntax error: " + node_type + " is not subscriptable at line " + to_string(yylineno) + " column " + to_string(yycolumn) + " \n");}
 }
 

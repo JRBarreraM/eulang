@@ -61,7 +61,7 @@ letter  [a-zA-Z]
 "union"                      { return TUNION; }
 "list"                       { return TLIST; }
 "~"                          { return TILDE; }
-"&"                          { return DEREF; }
+"@"                          { return DEREF; }
 "^"                          { return ROOF; }
 
 "true"                       { return TRUE; }
