@@ -154,17 +154,17 @@ if( condicional ) {
 Las funciones solamente retornan tipos primitivos.  
 Las funciones reciben cualquier tipo como argumento, por valor o por referencia.
 ```
-func <nombre_func>(<tipo> <nombre_argumento>, ...)::<tipo_retorno> { 
+func <tipo_retorno>::<nombre_func>(<tipo> <nombre_argumento>, ...) { 
 	// hacer algo
 	return <tipo_retorno>
 }
 
 // Normal
-func fact(int numero)::int {
+func int::fact(int numero) {
 	fact_aux(numero-1, 0);
 }
 
-func fact_aux(int numero, int count)::int {
+func int::fact_aux(int numero, int count) {
 	if(numero == 0){
 		return count;
 	}
@@ -172,11 +172,11 @@ func fact_aux(int numero, int count)::int {
 }
 
 // De cola
-func fact(int n)::int {
+func int::fact(int n) {
   return tail_fact(n,1);
 }
 
-func tail_fact(int n, int a)::int {
+func int::tail_fact(int n, int a) {
   if (n == 0)
     return a;
   else
@@ -198,7 +198,7 @@ Para pasar por referencia se usa ```<tipo> ^ <nombre>```. Ejemplo:
 let int hola = 1;
 let int adios = 1;
 
-func dummy(int ^ a, int b)::int {
+func int::dummy(int ^ a, int b) {
 	a++;
 	b++;
 	return a+b;
@@ -414,7 +414,3 @@ flex nombreArchivoLexer.l
 g++ nombreArchivoLexer.yy.c
 ./nombreEjecutable nombreArchivoCodigo.eula      *NOTA: Es importante la extension*
 ```
-
-## To Do:
-* valores default para argumentos en las subrutinas
-	func(a, b=1){}
