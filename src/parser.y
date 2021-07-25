@@ -22,6 +22,7 @@
     string actual_func_id = "";
     string type_elem_array = "";
     bool all_same_type = true;
+    vector<string> funcSigs;
 
     void yyerror(const char *s);
     void redeclared_variable_error(string id);
@@ -29,6 +30,7 @@
     t_type* check_register_id(string id);
     t_type* check_register_attr(t_type* l_type, string id);
 
+    bool check_func_sig_args(symbol* id, NodeRoutineArgsDef* args);
     bool check_func_args(string id, NodeCallFunctionArgs* args);
     void calcNumOfArgs(string id, NodeRoutineArgsDef* args);
     regex extension("(.*)\\.eula");
@@ -134,7 +136,7 @@
 %type <ast>     VarInst VarDef OptAssign Assign RValue InputType OptExp Exp
 %type <ast>     LValue DefFunc CallFunc FuncSignature
 %type <ncfa>    ArgElems ArgList
-%type <nrad>    ParList FuncPar
+%type <nrad>    ParList FuncPar FuncParSig ParListSig
 %type <ast>     DefProc Array ArrExp ArrElems DefUnion UnionBody DefStruct StructBody
 %type <ast>     Selection If OptElif Elif OptElse For Range While LoopWhile
 %type <boolean> OptRoof
@@ -301,22 +303,52 @@ LValue:         ID                             { check_id_exists($1);
 ;
 
 /* Funciones */
-DefFunc:        Func OPAR FuncPar {calcNumOfArgs($1,$3);} CPAR OCURLYBRACKET FuncBody CCURLYBRACKET { $$ = new NodeFuncDef($1, $3, $7); st.exit_scope(); actual_func_id = ""; 
-                    if (!func_has_return){
-                        string t($1); custom_errors.push("syntax error\: function '" + t + "' has no return at line " + to_string(yylineno) + "\n");
-                    } func_has_return = false;}
+DefFunc:        Func OPAR FuncPar   {   calcNumOfArgs($1,$3);
+                                        auto position = find(funcSigs.begin(),funcSigs.end(),$1);
+                                        if(position != funcSigs.end()){
+                                            check_func_sig_args(st.lookup($1), $3);
+                                            funcSigs.erase(position);
+                                        }
+                                    } 
+                CPAR OCURLYBRACKET FuncBody CCURLYBRACKET   {   $$ = new NodeFuncDef($1, $3, $7); st.exit_scope(); actual_func_id = ""; 
+                                                                if (!func_has_return){
+                                                                    string t($1); custom_errors.push("syntax error\: function '" + t + "' has no return at line " + to_string(yylineno) + "\n");
+                                                                } func_has_return = false;}
 ;
-Func: FUNC TypePrimitive DTWODOTS ID     { if(!st.insert($4,"func",$2->return_type(),true, new extra_info_func(st.get_last_scope()+1,-1))) redeclared_variable_error($4);
-                                            st.new_scope(); $$ = $4; actual_func_id = $4;}
+Func: FUNC TypePrimitive DTWODOTS ID    {  auto position = find(funcSigs.begin(),funcSigs.end(),$4);
+                                            if ( position != funcSigs.end()){
+                                                dynamic_cast<extra_info_func*>(st.lookup($4)->extra_inf)->child_scope = st.get_last_scope()+1;
+                                                if (st.lookup($4)->type->get_name() != $2->return_type()->get_name()){
+                                                    custom_errors.push("syntax error\: function return type '" + st.lookup($4)->type->get_name() + "' does not match signature type '" + $2->return_type()->get_name() + "' at line " + to_string(yylineno) + "\n");
+                                                }
+                                            }else{
+                                                if(!st.insert($4,"func",$2->return_type(),true, new extra_info_func(st.get_last_scope()+1,-1))) redeclared_variable_error($4);
+                                            }
+                                            st.new_scope(); $$ = $4;
+                                            actual_func_id = $4;
+                                        }
 ;
 
-FuncSignature:  MUL FUNC TypePrimitive DTWODOTS ID OPAR FuncPar CPAR SEMICOLON { if(!st.insert($5,"func", $3->return_type(), false)) 
-                                                                                    redeclared_variable_error($5); 
-                                                                                $$ = new NodeFuncSignature($5,$7,$3); }
+FuncSignature:  MUL FUNC TypePrimitive DTWODOTS ID OPAR FuncParSig CPAR SEMICOLON   {   if(!st.insert($5,"func", $3->return_type(), false, new extra_info_func(-1,-1))){
+                                                                                            redeclared_variable_error($5);
+                                                                                        }else{
+                                                                                            funcSigs.push_back($5);
+                                                                                            calcNumOfArgs($5,$7);
+                                                                                        } 
+                                                                                        $$ = new NodeFuncSignature($5,$7,$3); 
+                                                                                    }
 ;
 
 FuncPar:        ParList                 { $$ = $1; }
                 | /* lambda */          { $$ = NULL; }
+;
+
+FuncParSig:     ParListSig              { $$ = $1; }
+                | /* lambda */          { $$ = NULL; }
+;
+
+ParListSig:     ParList COMMA Type OptRoof ID   { $$ = new NodeRoutineArgsDef($3, $4, $5, $1);}
+                | Type OptRoof ID               { $$ = new NodeRoutineArgsDef($1, $2, $3);}
 ;
 
 ParList:        ParList COMMA Type OptRoof ID   { $$ = new NodeRoutineArgsDef($3, $4, $5, $1); 
@@ -342,15 +374,33 @@ ArgList:    RValue                              { $$ = new NodeCallFunctionArgs(
 ;
 
 /* Procedimientos */
-DefProc:        Proc OPAR FuncPar {calcNumOfArgs($1,$3);} CPAR OCURLYBRACKET FuncBody CCURLYBRACKET { $$ = new NodeProcDef($1, $3, $7);
-                                                                                 st.exit_scope(); }
+DefProc:        Proc OPAR FuncPar   {   calcNumOfArgs($1,$3);
+                                        auto position = find(funcSigs.begin(),funcSigs.end(),$1);
+                                        if(position != funcSigs.end()){
+                                            check_func_sig_args(st.lookup($1), $3);
+                                            funcSigs.erase(position);
+                                        }
+                                    }
+
+                CPAR OCURLYBRACKET FuncBody CCURLYBRACKET { $$ = new NodeProcDef($1, $3, $7); st.exit_scope(); }
 ;
-Proc:           PROC ID   { if(!st.insert($2, "proc", t_type_no_type::instance(), true, new extra_info_func(st.get_last_scope()+1,-1))) redeclared_variable_error($2);
-                            st.new_scope();
-                            $$ = $2; }
+Proc:           PROC ID     {   auto position = find(funcSigs.begin(),funcSigs.end(),$2);
+                                if ( position != funcSigs.end()){
+                                    dynamic_cast<extra_info_func*>(st.lookup($2)->extra_inf)->child_scope = st.get_last_scope()+1;
+                                }else{
+                                    if(!st.insert($2,"proc",t_type_no_type::instance(),true, new extra_info_func(st.get_last_scope()+1,-1))) redeclared_variable_error($2);
+                                }
+                                st.new_scope(); $$ = $2;
+                            }
+
 ;
-ProcSignature:   MUL PROC ID OPAR FuncPar CPAR SEMICOLON { if(!st.insert($3,"func", t_type_no_type::instance(), false)) redeclared_variable_error($3); 
-                                                           $$ = new NodeProcSignature($3, $5); }
+ProcSignature:   MUL PROC ID OPAR FuncParSig CPAR SEMICOLON {   if(!st.insert($3,"proc", t_type_no_type::instance(), false, new extra_info_func(-1,-1))){
+                                                                    redeclared_variable_error($3);
+                                                                }else{
+                                                                    funcSigs.push_back($3);
+                                                                    calcNumOfArgs($3,$5);
+                                                                } 
+                                                                $$ = new NodeProcSignature($3, $5);}
 ;
 
 /* Arreglos */
@@ -437,7 +487,7 @@ void yyerror(const char *s)
 
 void redeclared_variable_error(string id)
 {
-    string e = "Error: redeclared variable " + id + " at line " + to_string(yylineno) + ", column " + to_string(yycolumn) + "\n";
+    string e = "Error: redeclared "+ st.lookup(id)->category + " " + id + " at line " + to_string(yylineno) + ", column " + to_string(yycolumn) + "\n";
     st_errors.push(e);
 }
 
@@ -480,13 +530,37 @@ t_type* check_register_attr(t_type* l_type, string id){
 void calcNumOfArgs(string id, NodeRoutineArgsDef* args) {
     NodeRoutineArgsDef* temp = args;
     symbol* lookUp = st.lookup(id);
+    if ((lookUp->category != "func" && lookUp->category != "proc") || dynamic_cast<extra_info_func*>(lookUp->extra_inf)->numOfArgs != -1)
+        return;
     int numOfArgs = 0;
     while (temp){
         numOfArgs++;
-        dynamic_cast<extra_info_func*>(lookUp->extra_inf)->args_types.insert(dynamic_cast<extra_info_func*>(lookUp->extra_inf)->args_types.begin(),temp->type->return_type());
+        dynamic_cast<extra_info_func*>(lookUp->extra_inf)->args_types.insert(dynamic_cast<extra_info_func*>(lookUp->extra_inf)->args_types.begin(), make_pair(temp->id,temp->type->return_type()));
         temp = temp->args;
     }
     dynamic_cast<extra_info_func*>(lookUp->extra_inf)->numOfArgs = numOfArgs;
+}
+
+
+bool check_func_sig_args(symbol* s, NodeRoutineArgsDef* args){
+    NodeRoutineArgsDef* temp = args;
+    vector<NodeRoutineArgsDef*> args_list;
+    while (temp){
+        args_list.insert(args_list.begin(),temp);
+        temp = temp->args;
+    }
+    int numOfArgs = dynamic_cast<extra_info_func*>(s->extra_inf)->numOfArgs;
+    if (args_list.size() != numOfArgs){
+        string e = "Error: func " + s->id + " signature indicates " + to_string(numOfArgs) + " arguments but " + to_string(args_list.size()) + " were given at line " + to_string(yylineno) + "\n";
+        st_errors.push(e);
+        return false;
+    }
+    bool result = true;
+    for (int i=0; i < args_list.size() ; i++){
+        result = result && checkExpectedType(dynamic_cast<extra_info_func*>(s->extra_inf)->args_types[i].second->get_name(),args_list[i]->type->return_type()->get_name());
+        result = result && checkExpectedName(dynamic_cast<extra_info_func*>(s->extra_inf)->args_types[i].first,args_list[i]->id);
+    }
+    return result;
 }
 
 bool check_func_args(string id, NodeCallFunctionArgs* args){
@@ -505,7 +579,7 @@ bool check_func_args(string id, NodeCallFunctionArgs* args){
     }
     bool result = true;
     for (int i=0; i < args_list.size() ; i++){
-        result = result && checkExpectedType(dynamic_cast<extra_info_func*>(s->extra_inf)->args_types[i]->get_name(),args_list[i]->return_type()->get_name());
+        result = result && checkExpectedType(dynamic_cast<extra_info_func*>(s->extra_inf)->args_types[i].second->get_name(),args_list[i]->return_type()->get_name());
     }
     return result;
 }
@@ -532,7 +606,7 @@ int main(int argc, char **argv)
         }
 
         else{
-            cout << "Unexpected argument: " << argv[i] <<endl;
+            cout << "Unexpected argument\: " << argv[i] <<endl;
             return 0;
         }
     }
@@ -608,11 +682,19 @@ int main(int argc, char **argv)
     // start parsing
     yyparse();
 
+    if(!funcSigs.empty()){
+        for (auto iter : funcSigs){
+            custom_errors.push("Error\: routine '"+ iter +"' declared but not defined \n");
+        }
+    }
+
     if(ast) root_ast->print(0);
     if(stp) st.print();
     if(!custom_errors.empty()) show_queue(custom_errors);
     if(!st_errors.empty()) show_queue(st_errors);
     if(!type_errors.empty()) show_queue(type_errors);
-
+    if (!custom_errors.empty() || !st_errors.empty() || !type_errors.empty() || !funcSigs.empty()){
+        cout << "For more information please seek help at https://aprendeaprogramar.com/" <<endl;
+    }
     return 0;
 }

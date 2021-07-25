@@ -15,10 +15,14 @@ class extra_info_func : public extra_info {
 	public :
 		int child_scope;
 		int numOfArgs;
-		vector<t_type*> args_types;
+		vector<pair<string, t_type*>> args_types;
 		extra_info_func(int cs, int na):
 			extra_info(), child_scope(cs), numOfArgs(na){};
+		extra_info_func(int cs, int na, vector<pair<string, t_type*>> at):
+			extra_info(), child_scope(cs), numOfArgs(na), args_types(at){};
 };
+
+
 
 class extra_info_struct : public extra_info {
 	public :

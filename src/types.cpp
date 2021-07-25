@@ -171,6 +171,14 @@ bool checkExpectedType(string exp, string rec){
     return true;
 }
 
+bool checkExpectedName(string exp, string rec){
+    if (exp != rec){
+        custom_errors.push("syntax error: expected parameter name '" + exp + "' received '" + rec + "' at line " + to_string(yylineno) + '\n');
+        return false;
+    }
+    return true;
+}
+
 void checkAssignType(t_type* lvalue, t_type* rvalue){
     if (lvalue->name == "list" && rvalue->name == "array"){
         if (dynamic_cast<t_type_list*>(lvalue)->type->get_name() != dynamic_cast<t_type_array*>(rvalue)->type->get_name()){

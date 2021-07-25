@@ -105,4 +105,5 @@ t_type* equalsType(string left, string right);
 void checkAssignType(t_type* left, t_type* right);
 void checkSubscriptable(string node_type);
 bool checkExpectedType(string exp, string rec);
+bool checkExpectedName(string exp, string rec);
 void push_type_error(string action, string typeA, string typeB="");

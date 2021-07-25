@@ -11,21 +11,21 @@ void symbol::print(){
 /* Symbol Table */
 sym_table::sym_table() {
 	scope_stack.push_back(0);
-	insert("itochar", "func", t_type_char::instance(), true);
-	insert("ctoint", "func", t_type_int::instance(), true);
-	insert("itostr", "func", t_type_str::instance(), true);
-	insert("floor", "func", t_type_int::instance(), true);
-	insert("ceil", "func", t_type_int::instance(), true);
-	insert("decimal", "func", t_type_float::instance(), true);
-	insert("round", "func", t_type_int::instance(), true);
-	insert("ftostr", "func", t_type_str::instance(), true);
+	insert("itochar", "func", t_type_char::instance(), true, new extra_info_func(-1,1,{make_pair("i", t_type_int::instance())}));
+	insert("ctoint", "func", t_type_int::instance(), true, new extra_info_func(-1,1,{make_pair("c", t_type_char::instance())}));
+	insert("itostr", "func", t_type_str::instance(), true, new extra_info_func(-1,1,{make_pair("i", t_type_int::instance())}));
+	insert("floor", "func", t_type_int::instance(), true, new extra_info_func(-1,1,{make_pair("f", t_type_float::instance())}));
+	insert("ceil", "func", t_type_int::instance(), true, new extra_info_func(-1,1,{make_pair("f", t_type_float::instance())}));
+	insert("decimal", "func", t_type_float::instance(), true, new extra_info_func(-1,1,{make_pair("f", t_type_float::instance())}));
+	insert("round", "func", t_type_int::instance(), true, new extra_info_func(-1,1,{make_pair("f", t_type_float::instance())}));
+	insert("ftostr", "func", t_type_str::instance(), true, new extra_info_func(-1,1,{make_pair("f", t_type_float::instance())}));
 	insert("lena", "func", t_type_int::instance(), true);
-	insert("lens", "func", t_type_int::instance(), true);
+	insert("lens", "func", t_type_int::instance(), true, new extra_info_func(-1,1,{make_pair("s", t_type_str::instance())}));
 	insert("split", "func", t_type_no_type::instance(), true);
-	insert("stoint", "func", t_type_int::instance(), true);
-	insert("stofloat", "func", t_type_float::instance(), true);
+	insert("stoint", "func", t_type_int::instance(), true, new extra_info_func(-1,1,{make_pair("s", t_type_str::instance())}));
+	insert("stofloat", "func", t_type_float::instance(), true, new extra_info_func(-1,1,{make_pair("s", t_type_str::instance())}));
 	insert("lenl", "func", t_type_int::instance(), true);
-	insert("pop", "func", t_type_no_type::instance(), true);//TODO
+	insert("pop", "func", t_type_no_type::instance(), true);
 	insert("push", "proc", t_type_no_type::instance(), true);
 	insert("insert", "proc", t_type_no_type::instance(), true);
 	insert("find", "func", t_type_int::instance(), true);
