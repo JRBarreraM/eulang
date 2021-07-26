@@ -498,7 +498,8 @@ void NodeStart::print(int ident){
     for(int i = 0; i < ident; i++)
         cout << "  ";
     cout << "START" << endl;
-    inst->print(ident+1);
+    if (inst)
+        inst->print(ident+1);
 }
 
 void NodePrint::print(int ident){

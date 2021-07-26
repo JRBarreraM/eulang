@@ -6,3 +6,63 @@ struct mage {
 
 let mage rivero;
 print(ftostr(rivero.physical_strength));
+
+/* This is a point in 2d */
+struct point {
+    let int x;
+    let int y;
+}
+
+/* This is a line in 2d space */
+union side {
+    let point[2] points;
+}
+
+/* Triangle represented by 3 lines */
+struct triangle {
+    let side[3] sides;
+    let int ~ pointer;
+}
+
+let triangle ~ my_triangle = new triangle;
+let point[3] points;
+
+for(i in points)
+{
+    i.x = input("Please enter X coordinate")::float;
+    i.y = input("Please enter Y coordinate")::str;
+}
+
+let int i = 0;
+while (i < 3)
+{
+    @my_triangle.sides[i].points[0] = points[i];
+    @my_triangle.sides[i].points[1] = points[(i+1)%3];
+    @(@my_triangle.pointer) = i;
+    i++;
+}
+
+*func float::len_side(side b);
+
+func float::len_side(side a){
+    return ((a.points[0].x - a.points[1].x)**2 + (a.points[0].y - a.points[1].y)**2)**(0.5);
+}
+
+// Calculate the area of a triangle
+func int::perimeter(triangle tr) {
+    return (len_side(tr.sides[0]) + len_side(tr.sides[1]) + len_side(tr.sides[2]));
+}
+
+let int peri = perimeter(@my_triangle);
+print("The perimeter of the triangle is: " + itostr(peri));
+let str size;
+if (peri > 20){
+    size = "Big";
+}
+elif (10 < peri && peri < 20) {
+    size = "Average";
+}
+else{
+    size = "Small";
+}
+print("Really " + size + " triangle");

@@ -1,5 +1,5 @@
 /* This is a point in 2d */
-union point {
+struct point {
     let int x;
     let int y;
 }
@@ -9,24 +9,49 @@ union side {
     let point[2] points;
 }
 
-/* Square represented by 4 lines */
-union square {
-    let side[4] sides;
+/* Triangle represented by 3 lines */
+struct triangle {
+    let side[3] sides;
     let int ~ pointer;
 }
 
-let square ~ my_square = new square;
+let triangle ~ my_triangle = new triangle;
+let point[3] points;
 
-for(i in [0...4])
+for(i in points)
 {
-    @my_square.sides[i].points[0].x = input("Please enter X coordinate of side ")::int;
-    @my_square.sides[i].points[1].y = 2;
-    @(@my_square.pointer) = 2;
+    i.x = input("Please enter X coordinate")::int;
+    i.y = input("Please enter Y coordinate")::int;
 }
 
-// Calculate the area of a square
-func int::area(square sq) {
-    return sq.sides[0].points[0].x ** 2;
+let int i = 0;
+while (i < 3)
+{
+    @my_triangle.sides[i].points[0] = points[i];
+    @my_triangle.sides[i].points[1] = points[(i+1)%3];
+    @(@my_triangle.pointer) = i;
+    i++;
 }
 
-let int arrea = area(@my_square);
+func float::len_side(side a){
+    return ((a.points[0].x - a.points[1].x)**2 + (a.points[0].y - a.points[1].y)**2)**(0.5);
+}
+
+// Calculate the area of a triangle
+func int::perimeter(triangle tr) {
+    return round(len_side(tr.sides[0]) + len_side(tr.sides[1]) + len_side(tr.sides[2]));
+}
+
+let int peri = perimeter(@my_triangle);
+print("The perimeter of the triangle is: " + itostr(peri));
+let str size;
+if (peri > 20){
+    size = "Big";
+}
+elif (10 < peri && peri < 20) {
+    size = "Average";
+}
+else{
+    size = "Small";
+}
+print("Really " + size + " triangle");

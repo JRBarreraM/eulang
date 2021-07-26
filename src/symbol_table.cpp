@@ -5,7 +5,7 @@ using namespace std;
 bool symbol::operator==(const symbol & rhs) const { return (this->scope == rhs.scope && this->id == rhs.id);}
 
 void symbol::print(){
-	cout << "SCOPE: " << scope;
+	cout << "SCOPE: " << scope << ", CATEGORY: " << category << ", TYPE: " << type->get_name();
 }
 
 /* Symbol Table */
@@ -116,7 +116,7 @@ void sym_table::print() {
 		for (auto qi : i.second) {
 			qi->print();
 			if (qi != i.second.back()) 
-				cout << ", ";
+				cout << " || ";
 		}
 		cout << "]" << endl;
 	}

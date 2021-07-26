@@ -20,6 +20,7 @@
     queue<string> custom_errors;
     bool func_has_return = false;
     string actual_func_id = "";
+    string actual_for_id = "";
     string type_elem_array = "";
     bool all_same_type = true;
     vector<string> funcSigs;
@@ -165,7 +166,7 @@
 
 /* Estructura del programa */
 Start:          Inst                  { $$ = new NodeStart($1); root_ast = $$;}
-                | /* lambda */        { $$ = NULL; }
+                | /* lambda */        { $$ = new NodeStart(NULL); root_ast = $$; }
 ;
 Inst:           InstAux               { $$ = new NodeInst($1); }
                 | Inst InstAux        { $$ = new NodeInst($2, $1); }
@@ -465,12 +466,21 @@ For:            LoopFor OPAR IdFor IN Range CPAR OCURLYBRACKET Inst CCURLYBRACKE
 ;
 LoopFor:        FOR     { st.new_scope(); }
 ;
-IdFor:          ID      { $$ = $1; 
-                          if(!st.insert($1, "var", t_type_int::instance(),true)) redeclared_variable_error($1);}
+IdFor:          ID      {   $$ = $1; 
+                            if(!st.insert($1, "var", t_type_error::instance(),true)) redeclared_variable_error($1);
+                            actual_for_id = $1;
+                        }
 ;
 
-Range:          Exp         { $$ = $1; }
-                | Array     { $$ = $1; }
+Range:          Exp         {   $$ = $1;
+                                if($1->return_type()->name == "array")
+                                    st.lookup(actual_for_id)->type = dynamic_cast<t_type_array*>($1->return_type())->type;
+                                else if($1->return_type()->name == "list")
+                                    st.lookup(actual_for_id)->type = dynamic_cast<t_type_list*>($1->return_type())->type;
+                                else if($1->return_type()->name == "str")
+                                    st.lookup(actual_for_id)->type = t_type_char::instance();
+                                actual_for_id = "";}
+                | Array     { $$ = $1; st.lookup(actual_for_id)->type = dynamic_cast<t_type_array*>($1->return_type())->type; actual_for_id = "";}
 ;
 
 /* While Loop */
@@ -694,7 +704,7 @@ int main(int argc, char **argv)
     if(!st_errors.empty()) show_queue(st_errors);
     if(!type_errors.empty()) show_queue(type_errors);
     if (!custom_errors.empty() || !st_errors.empty() || !type_errors.empty() || !funcSigs.empty()){
-        cout << "For more information please seek help at https://aprendeaprogramar.com/" <<endl;
+        cout << "For more information please check https://aprendeaprogramar.com/" << endl;
     }
     return 0;
 }

@@ -26,6 +26,6 @@ if(true){
 let int a = 1;
 // Chequeamos cual es el valor final
 print(final);
-print(a + counter);
+print(itostr(a + counter));
 
 // Hola beunas
